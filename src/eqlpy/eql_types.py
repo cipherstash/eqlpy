@@ -2,20 +2,18 @@ from psycopg2.extras import RealDictCursor
 from datetime import datetime
 import json
 
+
 class EqlValue:
     def __init__(self, v, t: str, c: str):
         self.value = v
         self.table = t
         self.column = c
 
-    def to_db_format(self, query_type = None):
+    def to_db_format(self, query_type=None):
         data = {
             "k": "pt",
             "p": self._value_in_db_format(query_type),
-            "i": {
-              "t": str(self.table),
-              "c": str(self.column)
-            },
+            "i": {"t": str(self.table), "c": str(self.column)},
             "v": 1,
             "q": query_type,
         }
@@ -25,6 +23,7 @@ class EqlValue:
     def from_parsed_json(cls, parsed):
         return cls._value_from_db_format(parsed["p"])
 
+
 class EqlInt(EqlValue):
     def _value_in_db_format(self, query_type):
         return str(self.value)
@@ -33,13 +32,15 @@ class EqlInt(EqlValue):
     def _value_from_db_format(cls, s: str):
         return int(s)
 
+
 class EqlBool(EqlValue):
     def _value_in_db_format(self, query_type):
         return str(self.value).lower()
 
     @classmethod
     def _value_from_db_format(cls, s: str):
-        return s.lower() == 'true'
+        return s.lower() == "true"
+
 
 class EqlDate(EqlValue):
     def _value_in_db_format(self, query_type):
@@ -49,6 +50,7 @@ class EqlDate(EqlValue):
     def _value_from_db_format(cls, s: str):
         return datetime.fromisoformat(s).date()
 
+
 class EqlFloat(EqlValue):
     def _value_in_db_format(self, query_type):
         return str(self.value)
@@ -57,6 +59,7 @@ class EqlFloat(EqlValue):
     def _value_from_db_format(cls, s: str):
         return float(s)
 
+
 class EqlText(EqlValue):
     def _value_in_db_format(self, query_type):
         return self.value
@@ -64,6 +67,7 @@ class EqlText(EqlValue):
     @classmethod
     def _value_from_db_format(cls, s: str):
         return s
+
 
 class EqlJsonb(EqlValue):
     def _value_in_db_format(self, query_type):
@@ -75,6 +79,7 @@ class EqlJsonb(EqlValue):
     @classmethod
     def _value_from_db_format(cls, s: str):
         return json.loads(s)
+
 
 class EqlRow:
     @staticmethod

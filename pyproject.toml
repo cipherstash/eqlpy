@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "eqlpy"
+version = "0.0.1a1"
+authors = [
+  { name="CipherStash", email="yuji@cipherstash.com" },
+]
+description = "EQL support library for Python 3"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/cipherstash/eqlpy"
+Issues = "https://github.com/cipherstash/eqlpy/issues"

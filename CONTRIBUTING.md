@@ -1,11 +1,5 @@
 # How to contribute to eqlpy
 
-## I want to use eqlpy in my programming language
-
-eqlpy currently works for Rust.
-
-If you would like to use eqlpy in another language, upvote an existing [discussion](https://github.com/cipherstash/eqlpy/discussions?discussions_q=is%3Aopen+label%3A%22new+language%22) and leave a comment, or start a new [discussion](https://github.com/cipherstash/eqlpy/discussions/new?category=ideas&labels=new%20language).
-
 ## I want to report a bug, or make a feature request
 
 Please use the GitHub issue tracker to report bugs, suggest features, or documentation improvements.

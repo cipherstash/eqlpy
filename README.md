@@ -174,6 +174,11 @@ print(eql_row.row)
 }
 ```
 
+### Database interaction
+
+For code examples of storing and querying with [CipherStash Proxy](https://cipherstash.com/docs/getting-started/cipherstash-proxy), refer to [examples directory](examples/)
+
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request on the [GitHub repository](https://github.com/cipherstash/eqlpy).

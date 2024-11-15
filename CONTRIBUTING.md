@@ -8,9 +8,7 @@ Please use the GitHub issue tracker to report bugs, suggest features, or documen
 
 ## Contributing via Pull Requests
 
-Please contact us at support@cipherstash.com before you create a PR.
-
-We will get back to you within 24 hours with next steps.
+Please fork the repo, make your changes, and [create a PR](https://github.com/cipherstash/eqlpy/compare).
 
 # Security issue notifications
 

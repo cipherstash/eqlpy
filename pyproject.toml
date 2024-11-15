@@ -16,9 +16,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = [
-    "psycopg2 == 2.*",
-]
+dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/cipherstash/eqlpy"

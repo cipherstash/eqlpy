@@ -176,7 +176,7 @@ print(eql_row.row)
 
 ### Database interaction
 
-For code examples of storing and querying with [CipherStash Proxy](https://cipherstash.com/docs/getting-started/cipherstash-proxy), refer to [examples directory](examples/)
+For code examples of storing and querying with [CipherStash Proxy](https://cipherstash.com/docs/getting-started/cipherstash-proxy), refer to [examples directory](examples/) and [integration tests](tests/integration/).
 
 
 ## Contributing

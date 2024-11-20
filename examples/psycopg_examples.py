@@ -4,6 +4,7 @@ from datetime import datetime
 from eqlpy.eql_types import EqlInt, EqlBool, EqlDate, EqlFloat, EqlText, EqlJsonb, EqlRow
 
 def connect_to_db():
+    # TODO: Make this configurable
     db_string = "host=localhost dbname=cipherstash_getting_started user=postgres password=postgres port=6432"
     conn = psycopg.connect(db_string)
     return conn, conn.cursor(row_factory=psycopg.rows.dict_row)
@@ -36,10 +37,13 @@ def insert_example_record(cur):
 def print_instructions():
     print("""
 In another terminal window, you can check the data on CipherStash Proxy with (assuming you are using default setting):
-$ psql -h localhost -p 6432 -U postgres -x -c "select * from examples limit 1;" cipherstash_getting_started
+
+  $ psql -h localhost -p 6432 -U postgres -x -c "select * from examples limit 1;" cipherstash_getting_started
 
 Also you can check what is really stored on PostgreSQL with:
-$ psql -h localhost -p 5432 -U postgres -x -c "select * from examples limit 1;" cipherstash_getting_started
+
+  $ psql -h localhost -p 5432 -U postgres -x -c "select * from examples limit 1;" cipherstash_getting_started
+
 """)
 
 def display_eql_row(cur):
@@ -56,7 +60,7 @@ def display_eql_row(cur):
     found = cur.fetchall()
 
     pp = pprint.PrettyPrinter(indent=4)
-    print("The record looks like this when converted to an EqlRow:")
+    print("The record looks like this when converted to an EqlRow:\n")
     for f in found:
         pp.pprint(EqlRow(column_function_map, f).row)
 
@@ -64,12 +68,14 @@ def query_example(cur):
     print("\nQuery example for partial Match of 'hello' in examples.encrypted_utf8_str:")
     cur.execute(
         "SELECT * FROM examples WHERE cs_match_v1(encrypted_utf8_str) @> cs_match_v1(%s)",
-        (EqlText("hello", "examples", "encrypted_utf8_str").to_db_format(),),
+        (EqlText("hello", "examples", "encrypted_utf8_str").to_db_format("match"),),
     )
     found = cur.fetchall()
     for f in found:
-        print(f"Text inside the found record: {EqlText.from_parsed_json(f['encrypted_utf8_str'])}")
-        print(f"Jsonb inside the found record: {EqlJsonb.from_parsed_json(f['encrypted_jsonb'])}")
+        print()
+        print(f"  Text inside the found record: {EqlText.from_parsed_json(f['encrypted_utf8_str'])}")
+        print()
+        print(f"  Jsonb inside the found record: {EqlJsonb.from_parsed_json(f['encrypted_jsonb'])}")
 
 def main():
     conn, cur = connect_to_db()

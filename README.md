@@ -23,7 +23,17 @@
 
 - **Data type handling**: Supports various data types including integers, booleans, dates, floats, text, and JSONB.
 - **Database formatting**: Converts Python data types to the format required by EQL for database operations.
-- **Parsing and reconstruction**: Parses and reconstructs data from the database back into Python types. 
+- **Parsing and reconstruction**: Parses and reconstructs data from the database back into Python types.
+
+## Supported database packages
+
+Currently, eqlpy supports either of the following database packages:
+
+* psycopg 3
+* sqlalchemy + psycopg 2
+
+For code examples of storing and querying encrypted data with [CipherStash Proxy](https://cipherstash.com/docs/getting-started/cipherstash-proxy) using those packages, refer to [examples directory](examples/) and [integration tests](tests/integration/).
+
 
 ## Installation
 
@@ -173,11 +183,6 @@ print(eql_row.row)
     'data': {'key': 'value'}
 }
 ```
-
-### Database interaction
-
-For code examples of storing and querying with [CipherStash Proxy](https://cipherstash.com/docs/getting-started/cipherstash-proxy), refer to [examples directory](examples/) and [integration tests](tests/integration/).
-
 
 ## Contributing
 

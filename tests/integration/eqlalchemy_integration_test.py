@@ -2,10 +2,9 @@ import unittest
 from sqlalchemy.orm import mapped_column, Mapped, sessionmaker
 from sqlalchemy import create_engine, func, select, text
 from datetime import date
-from eqlpy.eql_types import EqlInt, EqlBool, EqlDate, EqlFloat, EqlText, EqlJsonb
-
+import os
+from eqlpy.eql_types import EqlFloat, EqlText, EqlJsonb
 from eqlpy.eqlalchemy import *
-
 
 class TestExampleModel(unittest.TestCase):
     pg_password = os.getenv("PGPASSWORD", "postgres")

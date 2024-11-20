@@ -1,6 +1,6 @@
 import unittest
 from sqlalchemy.orm import mapped_column, Mapped, sessionmaker
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine, func, select, text
 from datetime import date
 from eqlpy.eql_types import EqlInt, EqlBool, EqlDate, EqlFloat, EqlText, EqlJsonb
 
@@ -30,7 +30,6 @@ class TestExampleModel(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        print("in set up class")
         self.engine = create_engine(
             f"postgresql://{self.pg_user}:{self.pg_password}@{self.pg_host}:{self.pg_port}/{self.pg_db}"
         )
@@ -60,6 +59,7 @@ class TestExampleModel(unittest.TestCase):
     def tearDown(self):
         self.session.rollback()
 
+    # Simple tests for storing and loading encrypteda columns
     def test_encrypted_int(self):
         found = self.session.query(Example).filter(Example.id == self.example1.id).one()
         self.assertEqual(found.encrypted_int, 1)
@@ -93,6 +93,32 @@ class TestExampleModel(unittest.TestCase):
             "<Example(id=1, encrypted_utf8_str=string123, encrypted_jsonb={'cat': 'a', 'key': ['value'], 'num': 1}, encrypted_int=1, encrypted_float=1.1, encrypted_date=2024-01-01, encrypted_boolean=True)>",
         )
 
+    # Simple update test for encrypted columns
+    def test_update_encrypted_columns(self):
+        example = self.session.query(Example).filter(Example.id == self.example1.id).one()
+        example.encrypted_float = 99.9
+        example.encrypted_utf8_str = "UPDATED_STRING"
+        example.encrypted_jsonb = {"key1": "value1", "key2": "value2"}
+        self.session.commit()
+        found = self.session.query(Example).filter(Example.id == self.example1.id).one()
+        self.assertEqual(found.encrypted_float, 99.9)
+        self.assertEqual(found.encrypted_utf8_str, "UPDATED_STRING")
+        self.assertEqual(found.encrypted_jsonb, {"key1": "value1", "key2": "value2"})
+
+    # Queries by encrypted columns
+    def test_string_partial_match_with_sql_clause(self):
+        query = (
+            select(Example)
+            .where(text("cs_match_v1(encrypted_utf8_str) @> cs_match_v1(:term)"))
+            .params(
+                term=EqlText("string", "examples", "encrypted_utf8_str").to_db_format(
+                    "match"
+                )
+            )
+        )
+        found = self.session.execute(query).scalar()
+        self.assertEqual("string123", found.encrypted_utf8_str)
+
     def test_string_partial_match(self):
         found = (
             self.session.query(Example)
@@ -107,7 +133,18 @@ class TestExampleModel(unittest.TestCase):
             )
             .one()
         )
-        self.assertEqual(found.encrypted_utf8_str, "string123")
+        self.assertEqual("string123", found.encrypted_utf8_str)
+
+    def test_string_exact_match_with_sql_clause(self):
+        query = (
+            select(Example)
+            .where(text('cs_unique_v1(encrypted_utf8_str) == cs_unique_v1(:term)'))
+            .params(
+                term=EqlText("string123", "examples", "encrypted_utf8_str").to_db_format("unique")
+            )
+        )
+        found = self.session.execute(query).scalar()
+        self.assertEqual("string123", found.encrypted_utf8_str)
 
     def test_string_exact_match(self):
         found = (
@@ -124,6 +161,18 @@ class TestExampleModel(unittest.TestCase):
         )
         self.assertEqual(found.encrypted_utf8_str, "string123")
 
+    def test_float_ore_with_sql_clause(self):
+        query = (
+            select(Example)
+            .where(text('cs_ore_64_8_v1(encrypted_float) > cs_ore_64_8_v1(:term)'))
+            .params(
+                term=EqlFloat(2.0, "examples", "encrypted_float").to_db_format("ore")
+            )
+        )
+        found = self.session.execute(query).scalar()
+        self.assertEqual(2.1, found.encrypted_float)
+        self.assertEqual("another_example", found.encrypted_utf8_str)
+
     def test_float_ore(self):
         found = (
             self.session.query(Example)
@@ -136,6 +185,20 @@ class TestExampleModel(unittest.TestCase):
             .one()
         )
         self.assertEqual(found.encrypted_float, 1.1)
+
+    # JSONB Qqueries
+    def test_jsonb_containment_1_with_sql_clause(self):
+        query = (
+            select(Example)
+            .where(text("cs_ste_vec_v1(encrypted_jsonb) @> cs_ste_vec_v1(:term)"))
+            .params(
+                term=EqlJsonb({'key': [] }, "examples", "encrypted_jsonb").to_db_format("ste_vec")
+            )
+        )
+        found = self.session.execute(query).scalar()
+        self.assertEqual(
+            found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
+        )
 
     def test_jsonb_containment_1(self):
         found = (
@@ -151,6 +214,19 @@ class TestExampleModel(unittest.TestCase):
             )
             .one()
         )
+        self.assertEqual(
+            found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
+        )
+
+    def test_jsonb_containment_2_with_sql_clause(self):
+        query = (
+            select(Example)
+            .where(text("cs_ste_vec_v1(encrypted_jsonb) <@ cs_ste_vec_v1(:term)"))
+            .params(
+                term= EqlJsonb( { "key": ["value", "another value"], "num": 1, "cat": "a", "non-existent": "val", }, "examples", "encrypted_jsonb",).to_db_format("ste_vec")
+            )
+        )
+        found = self.session.execute(query).scalar()
         self.assertEqual(
             found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
         )
@@ -180,6 +256,22 @@ class TestExampleModel(unittest.TestCase):
             found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
         )
 
+    def test_jsonb_field_extraction_with_sql_clause(self):
+        query = (
+            select(
+                text("cs_ste_vec_value_v1(encrypted_jsonb, :term) AS extracted_value")
+            )
+            .select_from(Example)
+            .params(
+                term=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
+                    "ejson_path"
+                ),
+            )
+        )
+        found = self.session.execute(query).all()
+        extracted = [EqlJsonb.from_parsed_json(row[0]) for row in found]
+        self.assertEqual(sorted(extracted), [1, 2, 3])
+
     def test_jsonb_field_extraction(self):
         found = self.session.query(
             cs_ste_vec_value_v1(
@@ -188,7 +280,7 @@ class TestExampleModel(unittest.TestCase):
                     "ejson_path"
                 ),
             ).label("extracted_value")
-        ).all()  # ._asdict()['extracted_value']
+        ).all()
         extracted = list(
             map(
                 lambda x: EqlJsonb.from_parsed_json(x._asdict()["extracted_value"]),
@@ -196,6 +288,20 @@ class TestExampleModel(unittest.TestCase):
             )
         )
         self.assertEqual(sorted(extracted), [1, 2, 3])
+
+    def test_jsonb_field_in_where_with_sql_clause(self):
+        query = (
+            select(Example)
+            .where(text("cs_ste_vec_term_v1(encrypted_jsonb, :term1) < cs_ste_vec_term_v1(:term2)"))
+            .params(
+                term1=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format("ejson_path"),
+                term2=EqlJsonb(2, "examples", "encrypted_jsonb").to_db_format("ste_vec")
+            )
+        )
+        found = self.session.execute(query).scalar()
+        self.assertEqual(
+            found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
+        )
 
     def test_jsonb_field_in_where(self):
         found = (
@@ -221,6 +327,23 @@ class TestExampleModel(unittest.TestCase):
             found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
         )
 
+    def test_jsonb_field_in_order_by_with_sql_clause(self):
+        query = (
+            select(Example)
+            .order_by(
+                text("cs_ste_vec_term_v1(encrypted_jsonb, :term) DESC")
+            )
+            .params(
+                term=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format("ejson_path")
+            )
+        )
+        found = self.session.execute(query).all()
+        self.assertEqual(found[0][0].encrypted_jsonb, {"num": 3, "cat": "b"})
+        self.assertEqual(found[1][0].encrypted_jsonb, {"num": 2, "cat": "b"})
+        self.assertEqual(
+            found[2][0].encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
+        )
+
     def test_jsonb_field_in_order_by(self):
         found = (
             self.session.query(Example)
@@ -230,15 +353,37 @@ class TestExampleModel(unittest.TestCase):
                     EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
                         "ejson_path"
                     ),
-                )
+                ).desc()
             )
             .all()
         )
-        self.assertEqual(
-            found[0].encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found[0].encrypted_jsonb, {"num": 3, "cat": "b"})
         self.assertEqual(found[1].encrypted_jsonb, {"num": 2, "cat": "b"})
-        self.assertEqual(found[2].encrypted_jsonb, {"num": 3, "cat": "b"})
+        self.assertEqual(
+            found[2].encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
+        )
+
+    def test_jsonb_field_in_group_by_with_sql_clause(self):
+        query = (
+            select(
+                text("cs_grouped_value_v1(cs_ste_vec_value_v1(encrypted_jsonb, :term)) AS category"),
+                text("COUNT(*)"),
+            )
+            .select_from(Example)
+            .group_by(
+                text("cs_ste_vec_term_v1(encrypted_jsonb, :term)")
+            )
+            .params(
+                term=EqlJsonb("$.cat", "examples", "encrypted_jsonb").to_db_format("ejson_path")
+            )
+        )
+        found = self.session.execute(query).all()
+        self.assertEqual(
+            ("a", 1), (EqlJsonb.from_parsed_json(found[0][0]), found[0][1])
+        )
+        self.assertEqual(
+            ("b", 2), (EqlJsonb.from_parsed_json(found[1][0]), found[1][1])
+        )
 
     def test_jsonb_field_in_group_by(self):
         found = (
@@ -270,7 +415,6 @@ class TestExampleModel(unittest.TestCase):
         self.assertEqual(
             ("b", 2), (EqlJsonb.from_parsed_json(found[1][0]), found[1][1])
         )
-
 
 class Example(BaseModel):
     __tablename__ = "examples"
@@ -315,7 +459,3 @@ class Example(BaseModel):
             f"encrypted_boolean={self.encrypted_boolean}"
             ")>"
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

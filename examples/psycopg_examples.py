@@ -49,7 +49,7 @@ def display_eql_row(cur):
         "encrypted_date": EqlDate.from_parsed_json,
         "encrypted_float": EqlFloat.from_parsed_json,
         "encrypted_utf8_str": EqlText.from_parsed_json,
-        "encrypted_jsonb": EqlText.from_parsed_json,
+        "encrypted_jsonb": EqlJsonb.from_parsed_json,
     }
 
     cur.execute("SELECT * FROM examples")
@@ -69,6 +69,7 @@ def query_example(cur):
     found = cur.fetchall()
     for f in found:
         print(f"Text inside the found record: {EqlText.from_parsed_json(f['encrypted_utf8_str'])}")
+        print(f"Jsonb inside the found record: {EqlJsonb.from_parsed_json(f['encrypted_jsonb'])}")
 
 def main():
     conn, cur = connect_to_db()

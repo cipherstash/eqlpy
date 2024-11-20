@@ -95,7 +95,9 @@ class TestExampleModel(unittest.TestCase):
 
     # Simple update test for encrypted columns
     def test_update_encrypted_columns(self):
-        example = self.session.query(Example).filter(Example.id == self.example1.id).one()
+        example = (
+            self.session.query(Example).filter(Example.id == self.example1.id).one()
+        )
         example.encrypted_float = 99.9
         example.encrypted_utf8_str = "UPDATED_STRING"
         example.encrypted_jsonb = {"key1": "value1", "key2": "value2"}
@@ -138,9 +140,11 @@ class TestExampleModel(unittest.TestCase):
     def test_string_exact_match_with_sql_clause(self):
         query = (
             select(Example)
-            .where(text('cs_unique_v1(encrypted_utf8_str) == cs_unique_v1(:term)'))
+            .where(text("cs_unique_v1(encrypted_utf8_str) == cs_unique_v1(:term)"))
             .params(
-                term=EqlText("string123", "examples", "encrypted_utf8_str").to_db_format("unique")
+                term=EqlText(
+                    "string123", "examples", "encrypted_utf8_str"
+                ).to_db_format("unique")
             )
         )
         found = self.session.execute(query).scalar()
@@ -164,7 +168,7 @@ class TestExampleModel(unittest.TestCase):
     def test_float_ore_with_sql_clause(self):
         query = (
             select(Example)
-            .where(text('cs_ore_64_8_v1(encrypted_float) > cs_ore_64_8_v1(:term)'))
+            .where(text("cs_ore_64_8_v1(encrypted_float) > cs_ore_64_8_v1(:term)"))
             .params(
                 term=EqlFloat(2.0, "examples", "encrypted_float").to_db_format("ore")
             )
@@ -192,7 +196,9 @@ class TestExampleModel(unittest.TestCase):
             select(Example)
             .where(text("cs_ste_vec_v1(encrypted_jsonb) @> cs_ste_vec_v1(:term)"))
             .params(
-                term=EqlJsonb({'key': [] }, "examples", "encrypted_jsonb").to_db_format("ste_vec")
+                term=EqlJsonb({"key": []}, "examples", "encrypted_jsonb").to_db_format(
+                    "ste_vec"
+                )
             )
         )
         found = self.session.execute(query).scalar()
@@ -223,7 +229,16 @@ class TestExampleModel(unittest.TestCase):
             select(Example)
             .where(text("cs_ste_vec_v1(encrypted_jsonb) <@ cs_ste_vec_v1(:term)"))
             .params(
-                term= EqlJsonb( { "key": ["value", "another value"], "num": 1, "cat": "a", "non-existent": "val", }, "examples", "encrypted_jsonb",).to_db_format("ste_vec")
+                term=EqlJsonb(
+                    {
+                        "key": ["value", "another value"],
+                        "num": 1,
+                        "cat": "a",
+                        "non-existent": "val",
+                    },
+                    "examples",
+                    "encrypted_jsonb",
+                ).to_db_format("ste_vec")
             )
         )
         found = self.session.execute(query).scalar()
@@ -292,10 +307,18 @@ class TestExampleModel(unittest.TestCase):
     def test_jsonb_field_in_where_with_sql_clause(self):
         query = (
             select(Example)
-            .where(text("cs_ste_vec_term_v1(encrypted_jsonb, :term1) < cs_ste_vec_term_v1(:term2)"))
+            .where(
+                text(
+                    "cs_ste_vec_term_v1(encrypted_jsonb, :term1) < cs_ste_vec_term_v1(:term2)"
+                )
+            )
             .params(
-                term1=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format("ejson_path"),
-                term2=EqlJsonb(2, "examples", "encrypted_jsonb").to_db_format("ste_vec")
+                term1=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
+                    "ejson_path"
+                ),
+                term2=EqlJsonb(2, "examples", "encrypted_jsonb").to_db_format(
+                    "ste_vec"
+                ),
             )
         )
         found = self.session.execute(query).scalar()
@@ -330,11 +353,11 @@ class TestExampleModel(unittest.TestCase):
     def test_jsonb_field_in_order_by_with_sql_clause(self):
         query = (
             select(Example)
-            .order_by(
-                text("cs_ste_vec_term_v1(encrypted_jsonb, :term) DESC")
-            )
+            .order_by(text("cs_ste_vec_term_v1(encrypted_jsonb, :term) DESC"))
             .params(
-                term=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format("ejson_path")
+                term=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
+                    "ejson_path"
+                )
             )
         )
         found = self.session.execute(query).all()
@@ -366,15 +389,17 @@ class TestExampleModel(unittest.TestCase):
     def test_jsonb_field_in_group_by_with_sql_clause(self):
         query = (
             select(
-                text("cs_grouped_value_v1(cs_ste_vec_value_v1(encrypted_jsonb, :term)) AS category"),
+                text(
+                    "cs_grouped_value_v1(cs_ste_vec_value_v1(encrypted_jsonb, :term)) AS category"
+                ),
                 text("COUNT(*)"),
             )
             .select_from(Example)
-            .group_by(
-                text("cs_ste_vec_term_v1(encrypted_jsonb, :term)")
-            )
+            .group_by(text("cs_ste_vec_term_v1(encrypted_jsonb, :term)"))
             .params(
-                term=EqlJsonb("$.cat", "examples", "encrypted_jsonb").to_db_format("ejson_path")
+                term=EqlJsonb("$.cat", "examples", "encrypted_jsonb").to_db_format(
+                    "ejson_path"
+                )
             )
         )
         found = self.session.execute(query).all()
@@ -415,6 +440,7 @@ class TestExampleModel(unittest.TestCase):
         self.assertEqual(
             ("b", 2), (EqlJsonb.from_parsed_json(found[1][0]), found[1][1])
         )
+
 
 class Example(BaseModel):
     __tablename__ = "examples"

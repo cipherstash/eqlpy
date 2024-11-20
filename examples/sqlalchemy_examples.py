@@ -48,8 +48,7 @@ class Example(BaseModel):
         )
 
 def connect_to_db():
-    # TODO: Make this configurable
-    engine = create_engine("postgresql://postgres:postgres@localhost:6432/cipherstash_getting_started")
+    engine = create_engine("postgresql://postgres:postgres@localhost:6432/eqlpy_example")
     Session = sessionmaker(bind=engine)
     session = Session()
     BaseModel.metadata.create_all(engine)
@@ -70,11 +69,11 @@ def print_instructions():
     print("""
 In another terminal window, you can check the data on CipherStash Proxy with (assuming you are using default setting):
 
-  $ psql -h localhost -p 6432 -U postgres -x -c "select * from examples limit 1;" cipherstash_getting_started
+  $ psql -h localhost -p 6432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example
 
 Also you can check what is really stored on PostgreSQL with:
 
-  $ psql -h localhost -p 5432 -U postgres -x -c "select * from examples limit 1;" cipherstash_getting_started
+  $ psql -h localhost -p 5432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example
 
 """)
 

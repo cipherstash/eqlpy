@@ -1,0 +1,5 @@
+export CS_DATASET_ID=<Dataset ID>
+export CS_WORKSPACE_ID=<Workspace ID>
+export CS_CLIENT_ACCESS_KEY=<Client access key>
+export CS_ENCRYPTION__CLIENT_ID=<Client ID>
+export CS_ENCRYPTION__CLIENT_KEY=<Client key>

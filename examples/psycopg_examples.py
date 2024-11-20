@@ -4,8 +4,7 @@ from datetime import datetime
 from eqlpy.eql_types import EqlInt, EqlBool, EqlDate, EqlFloat, EqlText, EqlJsonb, EqlRow
 
 def connect_to_db():
-    # TODO: Make this configurable
-    db_string = "host=localhost dbname=cipherstash_getting_started user=postgres password=postgres port=6432"
+    db_string = "host=localhost dbname=eqlpy_example user=postgres password=postgres port=6432"
     conn = psycopg.connect(db_string)
     return conn, conn.cursor(row_factory=psycopg.rows.dict_row)
 
@@ -38,11 +37,11 @@ def print_instructions():
     print("""
 In another terminal window, you can check the data on CipherStash Proxy with (assuming you are using default setting):
 
-  $ psql -h localhost -p 6432 -U postgres -x -c "select * from examples limit 1;" cipherstash_getting_started
+  $ psql -h localhost -p 6432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example
 
 Also you can check what is really stored on PostgreSQL with:
 
-  $ psql -h localhost -p 5432 -U postgres -x -c "select * from examples limit 1;" cipherstash_getting_started
+  $ psql -h localhost -p 5432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example
 
 """)
 

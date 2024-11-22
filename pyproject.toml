@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "eqlpy"
-version = "0.0.3a1"
+version = "0.0.3a11"
 authors = [
   { name="CipherStash", email="yuji@cipherstash.com" },
 ]

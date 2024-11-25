@@ -29,7 +29,7 @@
 
 Currently, eqlpy supports either of the following database packages:
 
-* psycopg 3
+* psycopg 3 or psycopg 2
 * sqlalchemy + psycopg 2
 
 For code examples of storing and querying encrypted data with [CipherStash Proxy](https://cipherstash.com/docs/getting-started/cipherstash-proxy) using those packages, refer to [examples directory](examples/) and [integration tests](tests/integration/).
@@ -183,6 +183,18 @@ print(eql_row.row)
     'data': {'key': 'value'}
 }
 ```
+
+## Release
+
+This project has been set up to use [Trusted Publisher](https://docs.pypi.org/trusted-publishers/) in PyPI from GitHub Actions.
+
+To make a GitHub release and publish to PyPI do the following steps:
+
+* Update the version in pyproject.toml in `main` branch (eg. "1.2.3")
+* Make a tag of the same version prefixed with "v" (eg. "v1.2.3"), and push
+  * `git tag v1.2.3`
+  * `git push v1.2.3`
+* `release-and-publish.yml` workflow will create a GitHub release, and publish the package to PyPI
 
 ## Contributing
 

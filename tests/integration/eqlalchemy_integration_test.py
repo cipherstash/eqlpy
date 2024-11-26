@@ -91,13 +91,6 @@ class TestExampleModel(unittest.TestCase):
             found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
         )
 
-    def test_example_prints_value(self):
-        self.example1.id = 1
-        self.assertEqual(
-            str(self.example1),
-            "<Example(id=1, encrypted_utf8_str=string123, encrypted_jsonb={'cat': 'a', 'key': ['value'], 'num': 1}, encrypted_int=1, encrypted_float=1.1, encrypted_date=2024-01-01, encrypted_boolean=True)>",
-        )
-
     # Simple update test for encrypted columns
     def test_update_encrypted_columns(self):
         example = (

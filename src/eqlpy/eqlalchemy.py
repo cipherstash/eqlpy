@@ -6,6 +6,7 @@ from functools import wraps
 from datetime import date
 import json
 
+
 class EqlTypeDecorator(TypeDecorator):
     def __init__(self, table, column):
         super().__init__()

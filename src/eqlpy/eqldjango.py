@@ -1,7 +1,7 @@
 import json
 from django.db import models
 from datetime import datetime
-from django.db.models import Func, TextField
+from django.db.models import Func, TextField, Aggregate
 from django.db.models.fields import BooleanField
 
 
@@ -116,7 +116,7 @@ class CsSteVecTermV1(Func):
     def __init__(self, *expressions, **extra):
         super().__init__(*expressions, **extra)
 
-class CsGroupedValueV1(Func):
+class CsGroupedValueV1(Aggregate):
     function = 'cs_grouped_value_v1'
     output_field = TextField()
 

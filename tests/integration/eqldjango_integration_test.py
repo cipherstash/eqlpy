@@ -262,10 +262,10 @@ class TestExampleDjangoModel(unittest.TestCase):
     def test_jsonb_in_where(self):
         term1=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
             "ejson_path"
-        ),
+        )
         term2=EqlJsonb(2, "examples", "encrypted_jsonb").to_db_format(
             "ste_vec"
-        ),
+        )
         query = Q(
             CsLt(
                 CsSteVecTermV1(F('encrypted_jsonb'), Value(term1)),
@@ -310,7 +310,6 @@ class TestExampleDjangoModel(unittest.TestCase):
         self.assertEqual(sorted(counts)[0], ("a", 1))
         self.assertEqual(sorted(counts)[1], ("b", 2))
 
-    # TODO: This doesn't currently work
     def test_jsonb_in_group_by(self):
         term = EqlJsonb("$.cat", "examples", "encrypted_jsonb").to_db_format("ejson_path")
         results = Example.objects.values(cat=CsSteVecTermV1(F("encrypted_jsonb"), Value(term))).annotate(
@@ -318,13 +317,10 @@ class TestExampleDjangoModel(unittest.TestCase):
             count=Count('*')
         )
 
-        print(results)
-
         result_list = list(results)
-        print(result_list)
-        self.assertEqual(EqlJsonb.from_parsed_json(result_list[0]['category']), "a")
+        self.assertEqual(EqlJsonb.from_parsed_json(json.loads(result_list[0]['category'])), "a")
         self.assertEqual(result_list[0]['count'], 1)
-        self.assertEqual(EqlJsonb.from_parsed_json(result_list[1]['category']), "b")
+        self.assertEqual(EqlJsonb.from_parsed_json(json.loads(result_list[1]['category'])), "b")
         self.assertEqual(result_list[1]['count'], 2)
 
 

@@ -3,8 +3,6 @@ from datetime import date
 
 from eqlpy.eqlalchemy import *
 
-from pprint import pprint
-
 
 class EqlAlchemyTest(unittest.TestCase):
     def assert_common_parts(self, parsed):

@@ -282,7 +282,6 @@ class TestExampleModel(unittest.TestCase):
             )
         )
         found = self.session.execute(query).all()
-        print(found)
         extracted = [EqlJsonb.from_parsed_json(row[0]) for row in found]
         self.assertEqual(sorted(extracted), [1, 2, 3])
 

@@ -2,18 +2,31 @@
 
 This directory contains short examples of using eqlpy to store and query encrypted records.
 
+Currently, there are 3 variations of supported ORMs and database driver combinations.
+
 ## Prerequisites
 
-### psycopg example
+These are the common prerequisites for all variations. See below for specific variations.
 
 * Python 3
 * Docker
 * Docker compose
 * CipherStash account
-* Supported database driver/ORM, either of:
-    * sqlalchemy + psycopg2
-    * psycopg 3
 * (Optinal) direnv or other tools to load environment variables from a file
+
+### psycopg example
+
+* psycopg 3
+
+### sqlalchemy example
+
+Please note currently pscyopg2 is required with the sqlalchemy example
+
+* sqlalchemy (2.0 or above recommended) + psycopg2
+
+### Django example
+
+* Django (5.1 or above recommended) + psycopg2
 
 ## Setup
 
@@ -37,6 +50,7 @@ This directory contains short examples of using eqlpy to store and query encrypt
 At this point, you should be able to run the examples.
 
 * If you have sqlalchemy and psycopg2, run `python examples/sqlalchemy_examples.py`
+* If you have Django and psycopg2, run `python examples/django_examples.py`
 * If you have psycopg 3, run: `python examples/psycopg_examples.py`
 
 and follow the prompt/instructions.

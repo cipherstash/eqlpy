@@ -11,8 +11,7 @@ class EncryptedValue(models.TextField):
         self.column = kwargs.pop("column")
         super().__init__(*args, **kwargs)
 
-    def pre_save(self, model_instance, add):
-        value = getattr(model_instance, self.attname)
+    def get_prep_value(self, value):
         if value is not None:
             dict = {
                 "k": "pt",

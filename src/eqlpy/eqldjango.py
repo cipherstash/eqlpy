@@ -44,7 +44,7 @@ class EncryptedValue(models.JSONField):
         return self._from_db_format(value["p"])
 
     def db_type(self, connection):
-      return "cs_encrypted_v1"
+        return "cs_encrypted_v1"
 
 
 class EncryptedInt(EncryptedValue):
@@ -95,43 +95,52 @@ class EncryptedJsonb(EncryptedValue):
     def _from_db_format(self, value):
         return json.loads(value)
 
+
 # EQL functions
 
+
 class CsMatchV1(Func):
-    function = 'cs_match_v1'
+    function = "cs_match_v1"
     output_field = JSONField()
+
 
 class CsUniqueV1(Func):
-    function = 'cs_unique_v1'
+    function = "cs_unique_v1"
     output_field = JSONField()
+
 
 class CsOre648V1(Func):
-    function = 'cs_ore_64_8_v1'
+    function = "cs_ore_64_8_v1"
     output_field = JSONField()
+
 
 class CsSteVecV1(Func):
-    function = 'cs_ste_vec_v1'
+    function = "cs_ste_vec_v1"
     output_field = JSONField()
+
 
 class CsSteVecValueV1(Func):
-    function = 'cs_ste_vec_value_v1'
+    function = "cs_ste_vec_value_v1"
     output_field = JSONField()
 
+
 class CsSteVecTermV1(Func):
-    function = 'cs_ste_vec_term_v1'
+    function = "cs_ste_vec_term_v1"
     output_field = JSONField()
 
     def __init__(self, *expressions, **extra):
         super().__init__(*expressions, **extra)
 
+
 class CsGroupedValueV1(Aggregate):
-    function = 'cs_grouped_value_v1'
+    function = "cs_grouped_value_v1"
     output_field = JSONField()
+
 
 # meta-programming to create custom EQL operators for Django
 def create_operator(operator_name, template):
     class CsOperator(models.Func):
-        function = ''
+        function = ""
         output_field = BooleanField()
 
         def __init__(self, left, right, **extra):
@@ -143,7 +152,7 @@ def create_operator(operator_name, template):
             left_sql, left_params = compiler.compile(left)
             right_sql, right_params = compiler.compile(right)
 
-            template = self.template % {'left': left_sql, 'right': right_sql}
+            template = self.template % {"left": left_sql, "right": right_sql}
             params = left_params + right_params
 
             return template, params
@@ -152,8 +161,9 @@ def create_operator(operator_name, template):
 
     return CsOperator
 
-CsContains = create_operator('CsContains', '%(left)s @> %(right)s')
-CsContainedBy = create_operator('CsContainedBy', '%(left)s <@ %(right)s')
-CsEquals = create_operator('CsEquals', '%(left)s = %(right)s')
-CsGt = create_operator('CsGt', '%(left)s > %(right)s')
-CsLt = create_operator('CsLt', '%(left)s < %(right)s')
+
+CsContains = create_operator("CsContains", "%(left)s @> %(right)s")
+CsContainedBy = create_operator("CsContainedBy", "%(left)s <@ %(right)s")
+CsEquals = create_operator("CsEquals", "%(left)s = %(right)s")
+CsGt = create_operator("CsGt", "%(left)s > %(right)s")
+CsLt = create_operator("CsLt", "%(left)s < %(right)s")

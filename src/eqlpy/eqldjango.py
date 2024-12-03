@@ -1,11 +1,11 @@
 import json
 from django.db import models
 from datetime import datetime
-from django.db.models import Func, TextField, Aggregate
+from django.db.models import Func, JSONField, Aggregate
 from django.db.models.fields import BooleanField
 
 
-class EncryptedValue(models.TextField):
+class EncryptedValue(models.JSONField):
     def __init__(self, *args, **kwargs):
         self.table = kwargs.pop("table")
         self.column = kwargs.pop("column")
@@ -26,7 +26,7 @@ class EncryptedValue(models.TextField):
                 "v": 1,
                 "q": None,
             }
-            return json.dumps(dict)
+            return dict
         else:
             return None
 
@@ -38,7 +38,10 @@ class EncryptedValue(models.TextField):
     def from_db_value(self, value, expression, connection):
         if value is None:
             return None
-        return self._from_db_format(json.loads(value)["p"])
+        if isinstance(value, str):
+            # TODO: seems like we get a string from the database, but we should be getting a dict
+            value = json.loads(value)
+        return self._from_db_format(value["p"])
 
     def db_type(self, connection):
       return "cs_encrypted_v1"
@@ -96,34 +99,34 @@ class EncryptedJsonb(EncryptedValue):
 
 class CsMatchV1(Func):
     function = 'cs_match_v1'
-    output_field = TextField()
+    output_field = JSONField()
 
 class CsUniqueV1(Func):
     function = 'cs_unique_v1'
-    output_field = TextField()
+    output_field = JSONField()
 
 class CsOre648V1(Func):
     function = 'cs_ore_64_8_v1'
-    output_field = TextField()
+    output_field = JSONField()
 
 class CsSteVecV1(Func):
     function = 'cs_ste_vec_v1'
-    output_field = TextField()
+    output_field = JSONField()
 
 class CsSteVecValueV1(Func):
     function = 'cs_ste_vec_value_v1'
-    output_field = TextField()
+    output_field = JSONField()
 
 class CsSteVecTermV1(Func):
     function = 'cs_ste_vec_term_v1'
-    output_field = TextField()
+    output_field = JSONField()
 
     def __init__(self, *expressions, **extra):
         super().__init__(*expressions, **extra)
 
 class CsGroupedValueV1(Aggregate):
     function = 'cs_grouped_value_v1'
-    output_field = TextField()
+    output_field = JSONField()
 
 # meta-programming to create custom EQL operators for Django
 def create_operator(operator_name, template):

@@ -241,7 +241,7 @@ class TestExampleDjangoModel(unittest.TestCase):
             extracted_value = CsSteVecValueV1(F("encrypted_jsonb"), Value(term))
         ).values_list('extracted_value', flat=True)
 
-        extracted = [EqlJsonb.from_parsed_json(json.loads(result)) for result in list(results)]
+        extracted = [EqlJsonb.from_parsed_json(result) for result in list(results)]
 
     def test_jsonb_in_where_with_sql_clause(self):
         term1=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
@@ -318,11 +318,10 @@ class TestExampleDjangoModel(unittest.TestCase):
         )
 
         result_list = list(results)
-        self.assertEqual(EqlJsonb.from_parsed_json(json.loads(result_list[0]['category'])), "a")
+        self.assertEqual(EqlJsonb.from_parsed_json(result_list[0]['category']), "a")
         self.assertEqual(result_list[0]['count'], 1)
-        self.assertEqual(EqlJsonb.from_parsed_json(json.loads(result_list[1]['category'])), "b")
+        self.assertEqual(EqlJsonb.from_parsed_json(result_list[1]['category']), "b")
         self.assertEqual(result_list[1]['count'], 2)
-
 
 class Example(models.Model):
     encrypted_int = EncryptedInt(table="examples", column="encrypted_int", null=True)

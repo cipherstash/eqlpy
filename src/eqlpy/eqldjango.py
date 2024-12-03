@@ -11,6 +11,12 @@ class EncryptedValue(models.TextField):
         self.column = kwargs.pop("column")
         super().__init__(*args, **kwargs)
 
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        kwargs["table"] = self.table
+        kwargs["column"] = self.column
+        return name, path, args, kwargs
+
     def get_prep_value(self, value):
         if value is not None:
             dict = {

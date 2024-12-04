@@ -97,6 +97,7 @@ class EncryptedJsonb(EncryptedValue):
 
 
 # EQL functions
+# These classes are data structures that represent EQL functions
 
 
 class CsMatchV1(Func):
@@ -128,9 +129,6 @@ class CsSteVecTermV1(Func):
     function = "cs_ste_vec_term_v1"
     output_field = JSONField()
 
-    def __init__(self, *expressions, **extra):
-        super().__init__(*expressions, **extra)
-
 
 class CsGroupedValueV1(Aggregate):
     function = "cs_grouped_value_v1"
@@ -138,6 +136,9 @@ class CsGroupedValueV1(Aggregate):
 
 
 # meta-programming to create custom EQL operators for Django
+# This create_operator and the calls below define Classes
+# CsContains, CsContainedBy, CsEquals, CsGt, CsLt
+# which represent Postgres operators @>, <@, =, >, < respectively.
 def create_operator(operator_name, template):
     class CsOperator(models.Func):
         function = ""

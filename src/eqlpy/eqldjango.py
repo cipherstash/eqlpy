@@ -3,6 +3,7 @@ from django.db import models
 from datetime import datetime
 from django.db.models import Func, JSONField, Aggregate
 from django.db.models.fields import BooleanField
+from django.db.models import Q, F, Value
 from eqlpy.eql_types import EqlFloat, EqlText, EqlJsonb
 
 

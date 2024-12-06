@@ -3,6 +3,7 @@ from django.db import models
 from datetime import datetime
 from django.db.models import Func, JSONField, Aggregate
 from django.db.models.fields import BooleanField
+from eqlpy.eql_types import EqlFloat, EqlText, EqlJsonb
 
 
 class EncryptedValue(models.JSONField):

@@ -1,0 +1,40 @@
+services:
+  postgres:
+    container_name: eql_test_pg
+    image: postgres:16.2-bookworm
+    command: ["postgres", "-c", "log_statement=all"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: eqlpy_test
+    ports:
+      - ${PGPORT:-5432}:5432
+    networks:
+      - eql_test_nw
+  proxy:
+    container_name: eql_test_proxy
+    image: cipherstash/cipherstash-proxy:cipherstash-proxy-v0.3.4
+    depends_on:
+      - postgres
+    ports:
+      - ${CS_PORT:-6432}:${CS_PORT:-6432}
+    environment:
+      CS_WORKSPACE_ID: $CS_WORKSPACE_ID
+      CS_CLIENT_ACCESS_KEY: $CS_CLIENT_ACCESS_KEY
+      CS_ENCRYPTION__CLIENT_ID: $CS_ENCRYPTION__CLIENT_ID
+      CS_ENCRYPTION__CLIENT_KEY: $CS_ENCRYPTION__CLIENT_KEY
+      CS_ENCRYPTION__DATASET_ID: $CS_DATASET_ID
+      CS_TEST_ON_CHECKOUT: "true"
+      CS_AUDIT__ENABLED: "false"
+      CS_DATABASE__PORT: 5432
+      CS_DATABASE__USERNAME: postgres
+      CS_DATABASE__PASSWORD: postgres
+      CS_DATABASE__NAME: eqlpy_test
+      CS_DATABASE__HOST: eql_test_pg
+      CS_UNSAFE_LOGGING: "true"
+    networks:
+      - eql_test_nw
+
+networks:
+  eql_test_nw:
+    driver: bridge

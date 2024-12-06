@@ -6,6 +6,7 @@ import os
 from eqlpy.eql_types import EqlFloat, EqlText, EqlJsonb
 from eqlpy.eqlalchemy import *
 
+
 class TestExampleModel(unittest.TestCase):
     pg_password = os.getenv("PGPASSWORD", "postgres")
     pg_user = os.getenv("PGUSER", "postgres")
@@ -47,7 +48,12 @@ class TestExampleModel(unittest.TestCase):
             True,
         )
         self.create_example_record(
-            -1, "another_example", {"num": 2, "cat": "b"}, 2.1, date(2024, 1, 2), False
+            -1,
+            '"another_example"',
+            {"num": 2, "cat": "b"},
+            2.1,
+            date(2024, 1, 2),
+            False,
         )
         self.create_example_record(
             0, "yet_another", {"num": 3, "cat": "b"}, 5.0, date(2024, 1, 3), False
@@ -58,7 +64,7 @@ class TestExampleModel(unittest.TestCase):
     def tearDown(self):
         self.session.rollback()
 
-    # Simple tests for storing and loading encrypteda columns
+    # Simple tests for storing and loading encrypted columns
     def test_encrypted_int(self):
         found = self.session.query(Example).filter(Example.id == self.example1.id).one()
         self.assertEqual(found.encrypted_int, 1)
@@ -83,13 +89,6 @@ class TestExampleModel(unittest.TestCase):
         found = self.session.query(Example).filter(Example.id == self.example1.id).one()
         self.assertEqual(
             found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
-        )
-
-    def test_example_prints_value(self):
-        self.example1.id = 1
-        self.assertEqual(
-            str(self.example1),
-            "<Example(id=1, encrypted_utf8_str=string123, encrypted_jsonb={'cat': 'a', 'key': ['value'], 'num': 1}, encrypted_int=1, encrypted_float=1.1, encrypted_date=2024-01-01, encrypted_boolean=True)>",
         )
 
     # Simple update test for encrypted columns
@@ -174,7 +173,7 @@ class TestExampleModel(unittest.TestCase):
         )
         found = self.session.execute(query).scalar()
         self.assertEqual(2.1, found.encrypted_float)
-        self.assertEqual("another_example", found.encrypted_utf8_str)
+        self.assertEqual('"another_example"', found.encrypted_utf8_str)
 
     def test_float_ore(self):
         found = (

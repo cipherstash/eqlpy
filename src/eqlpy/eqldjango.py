@@ -53,7 +53,6 @@ class EncryptedInt(EncryptedValue):
 
 
 class EncryptedBoolean(EncryptedValue):
-
     def _to_db_format(self, value):
         if value is None:
             return None
@@ -67,7 +66,6 @@ class EncryptedBoolean(EncryptedValue):
 
 
 class EncryptedDate(EncryptedValue):
-
     def _to_db_format(self, value):
         if value is None:
             return None

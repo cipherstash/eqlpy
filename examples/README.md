@@ -12,7 +12,7 @@ These are the common prerequisites for all variations. See below for specific va
 * Docker
 * Docker compose
 * CipherStash account
-* (Optinal) direnv or other tools to load environment variables from a file
+* (Optional) direnv or other tools to load environment variables from a file
 
 ### psycopg example
 

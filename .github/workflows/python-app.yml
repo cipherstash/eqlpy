@@ -34,7 +34,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest sqlalchemy psycopg psycopg2 django
+          pip install flake8 pytest sqlalchemy psycopg2 django
+          pip uninstall -y psycopg # Django + psycopg 3 currently has issues
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Lint with flake8
         run: |

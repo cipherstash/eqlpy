@@ -42,6 +42,40 @@ if not settings.configured:
 django.setup()
 
 
+def create_example_records():
+    example1 = Example(
+        encrypted_int=1,
+        encrypted_boolean=True,
+        encrypted_utf8_str="string123",
+        encrypted_date=date(2024, 1, 1),
+        encrypted_float=1.1,
+        encrypted_jsonb={"key": ["value"], "num": 1, "cat": "a"},
+    )
+    example1.save()
+
+    example2 = Example(
+        encrypted_int=-1,
+        encrypted_boolean=False,
+        encrypted_utf8_str="another_example",
+        encrypted_date=date(2024, 1, 2),
+        encrypted_float=2.1,
+        encrypted_jsonb={"num": 2, "cat": "b"},
+    )
+    example2.save()
+
+    example3 = Example(
+        encrypted_int=0,
+        encrypted_boolean=False,
+        encrypted_utf8_str="yet_another",
+        encrypted_date=date(2024, 1, 3),
+        encrypted_float=5.0,
+        encrypted_jsonb={"num": 3, "cat": "b"},
+    )
+    example3.save()
+
+    return [example1, example2, example3]
+
+
 class TestExampleDjangoModel(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -49,35 +83,7 @@ class TestExampleDjangoModel(unittest.TestCase):
 
     def setUp(self):
         Example.objects.all().delete()
-        self.example1 = Example(
-            encrypted_int=1,
-            encrypted_boolean=True,
-            encrypted_utf8_str="string123",
-            encrypted_date=date(2024, 1, 1),
-            encrypted_float=1.1,
-            encrypted_jsonb={"key": ["value"], "num": 1, "cat": "a"},
-        )
-        self.example1.save()
-
-        self.example2 = Example(
-            encrypted_int=-1,
-            encrypted_boolean=False,
-            encrypted_utf8_str="another_example",
-            encrypted_date=date(2024, 1, 2),
-            encrypted_float=2.1,
-            encrypted_jsonb={"num": 2, "cat": "b"},
-        )
-        self.example2.save()
-
-        self.example3 = Example(
-            encrypted_int=0,
-            encrypted_boolean=False,
-            encrypted_utf8_str="yet_another",
-            encrypted_date=date(2024, 1, 3),
-            encrypted_float=5.0,
-            encrypted_jsonb={"num": 3, "cat": "b"},
-        )
-        self.example3.save()
+        self.example1, self.example2, self.example3 = create_example_records()
 
     def test_save_null_example(self):
         count = Example.objects.count()
@@ -372,3 +378,40 @@ class Example(models.Model):
 
     class Meta:
         db_table = "examples"
+
+
+class TestUnchained(unittest.TestCase):
+    def setUp(self):
+        Example.objects.all().delete()
+        self.example1, self.example2, self.example3 = create_example_records()
+        self.ex_unchained = Unchained("examples")
+
+    def test_string_equals(self):
+        found = Example.objects.get(self.ex_unchained(encrypted_utf8_str="string123"))
+        self.assertEqual(found.encrypted_utf8_str, "string123")
+
+    def test_string_contains(self):
+        found = Example.objects.get(
+            self.ex_unchained(encrypted_utf8_str__s_contains="yet")
+        )
+        self.assertEqual(found.encrypted_utf8_str, "yet_another")
+
+    def test_json_contains(self):
+        found = Example.objects.get(
+            self.ex_unchained(encrypted_jsonb__j_contains={"key": []})
+        )
+        self.assertEqual(
+            {"key": ["value"], "num": 1, "cat": "a"}, found.encrypted_jsonb
+        )
+
+    def test_greater_than(self):
+        found = Example.objects.get(self.ex_unchained(encrypted_float__gt=3.0))
+        self.assertEqual(found.encrypted_float, 5.0)
+
+    def test_less_than_and_json_contains(self):
+        found = Example.objects.get(
+            self.ex_unchained(
+                encrypted_float__lt=3.0, encrypted_jsonb__j_contains={"cat": "b"}
+            )
+        )
+        self.assertEqual(found.encrypted_float, 2.1)

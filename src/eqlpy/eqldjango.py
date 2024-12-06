@@ -94,6 +94,37 @@ class EncryptedJsonb(EncryptedValue):
         return json.loads(value)
 
 
+# Experimental query interface
+class Unchained(object):
+    def __init__(self, table):
+        self.table = table
+
+    def __call__(self, **kwargs):
+        for key, value in kwargs.items():
+            # if splittable by __, then get col, op from key, val from value
+            if "__" in key:
+                col, op = key.split("__", maxsplit=1)
+                if op == "s_contains":
+                    term = EqlText(value, self.table, col).to_db_format("match")
+                    query = Q(CsContains(CsMatchV1(F(col)), CsMatchV1(Value(term))))
+                    return query
+                elif op == "j_contains":
+                    term = EqlJsonb(value, self.table, col).to_db_format("ste_vec")
+                    query = Q(CsContains(CsSteVecV1(F(col)), CsSteVecV1(Value(term))))
+                    return query
+                elif op == "gt":
+                    term = EqlFloat(value, self.table, col).to_db_format("ore")
+                    query = Q(CsGt(CsOre648V1(F(col)), CsOre648V1(Value(term))))
+                    return query
+                else:
+                    raise ValueError(f"Unsupported operator: {op}")
+            else:
+                # key does not contain __ (eg. age__gt ), so it's exact match
+                term = EqlText(value, self.table, key).to_db_format("unique")
+                query = Q(CsEquals(CsUniqueV1(F(key)), CsUniqueV1(Value(term))))
+                return query
+
+
 # EQL functions
 # These classes are data structures that represent EQL functions
 

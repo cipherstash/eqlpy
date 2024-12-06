@@ -11,7 +11,7 @@ class TestExampleModel(unittest.TestCase):
     pg_user = os.getenv("PGUSER", "postgres")
     pg_host = os.getenv("PGHOST", "localhost")
     pg_port = os.getenv("PGPORT", "6432")
-    pg_db = os.getenv("PGDATABASE", "cipherstash_getting_started")
+    pg_db = os.getenv("PGDATABASE", "eqlpy_test")
 
     @classmethod
     def create_example_record(cls, id, utf8_str, jsonb, float_val, date_val, bool_val):

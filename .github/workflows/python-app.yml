@@ -16,24 +16,46 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      PGPASSWORD: postgres
+      CS_WORKSPACE_ID: ${{ vars.CS_WORKSPACE_ID }}
+      CS_CLIENT_ACCESS_KEY: ${{ secrets.CS_CLIENT_ACCESS_KEY }}
+      CS_ENCRYPTION__CLIENT_ID: ${{ vars.CS_ENCRYPTION__CLIENT_ID }}
+      CS_ENCRYPTION__CLIENT_KEY: ${{ secrets.CS_ENCRYPTION__CLIENT_KEY }}
+      CS_DATASET_ID: ${{ vars.CS_DATASET_ID }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest sqlalchemy
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        # TODO: set up integration test environment and run integration tests as well
-        pytest tests/eqlpy/
+      - uses: actions/checkout@v4
+      - name: Start postgres
+        run: docker compose -f tests/integration/support/docker-compose.ci.yml up postgres -d
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest sqlalchemy psycopg2
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Istall postgres client
+        run: |
+           sudo apt-get update
+           sudo apt-get install -y postgresql-client
+      - name: Install EQL
+        run: curl -L https://github.com/cipherstash/encrypt-query-language/releases/download/eql-0.4.3/cipherstash-encrypt.sql | psql -h localhost -p 5432 -U postgres eqlpy_test
+      - name: Create appliaction types
+        run: psql -h localhost -p 5432 -U postgres eqlpy_test < tests/integration/support/application_types.sql
+      - name: Create test table
+        run: psql -h localhost -p 5432 -U postgres eqlpy_test < tests/integration/support/create_examples_table.sql
+      - name: Print dataset ID
+        run: echo ${CS_DATASET_ID}
+      - name: Start proxy
+        run: docker compose -f tests/integration/support/docker-compose.ci.yml up proxy -d
+      - name: Test with pytest
+        run: |
+          pytest tests/

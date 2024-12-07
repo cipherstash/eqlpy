@@ -407,3 +407,11 @@ class TestUnchained(unittest.TestCase):
     def test_greater_than(self):
         found = Example.objects.get(self.ex_unchained(encrypted_float__gt=3.0))
         self.assertEqual(found.encrypted_float, 5.0)
+
+    def test_less_than_and_json_contains(self):
+        found = Example.objects.get(
+            self.ex_unchained(
+                encrypted_float__lt=3.0, encrypted_jsonb__j_contains={"cat": "b"}
+            )
+        )
+        self.assertEqual(found.encrypted_float, 2.1)

@@ -5,7 +5,8 @@ create table examples (
   encrypted_float examples__encrypted_float,
   encrypted_int examples__encrypted_int,
   encrypted_utf8_str examples__encrypted_utf8_str,
-  encrypted_jsonb examples__encrypted_jsonb
+  encrypted_jsonb examples__encrypted_jsonb,
+  plain_int integer
 );
 
 -- Add CipherStash indexes to Encrypt config

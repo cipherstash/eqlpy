@@ -3,7 +3,7 @@ import os
 import django
 from django.conf import settings
 from django.db import models, connection
-from django.db.models import Q, F, Value, Count
+from django.db.models import Q, F, Value, Count, IntegerField
 from django.db.models.expressions import RawSQL
 from eqlpy.eql_types import EqlFloat, EqlText, EqlJsonb
 from eqlpy.eqldjango import *
@@ -50,6 +50,7 @@ def create_example_records():
         encrypted_date=date(2024, 1, 1),
         encrypted_float=1.1,
         encrypted_jsonb={"key": ["value"], "num": 1, "cat": "a"},
+        plain_int=0,
     )
     example1.save()
 
@@ -60,6 +61,7 @@ def create_example_records():
         encrypted_date=date(2024, 1, 2),
         encrypted_float=2.1,
         encrypted_jsonb={"num": 2, "cat": "b"},
+        plain_int=1,
     )
     example2.save()
 
@@ -70,6 +72,7 @@ def create_example_records():
         encrypted_date=date(2024, 1, 3),
         encrypted_float=5.0,
         encrypted_jsonb={"num": 3, "cat": "b"},
+        plain_int=2,
     )
     example3.save()
 
@@ -276,9 +279,7 @@ class TestExampleDjangoModel(unittest.TestCase):
             [term1, term2],
         )[0]
 
-        self.assertEqual(
-            {"key": ["value"], "num": 1, "cat": "a"}, result.encrypted_jsonb
-        )
+        self.assertEqual({"key": ["value"], "num": 1, "cat": "a"}, result.encrted_jsonb)
 
     def test_jsonb_in_where(self):
         term1 = EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
@@ -375,43 +376,72 @@ class Example(models.Model):
     encrypted_jsonb = EncryptedJsonb(
         table="examples", column="encrypted_jsonb", null=True
     )
+    plain_int = IntegerField()
 
     class Meta:
         db_table = "examples"
 
 
-class TestUnchained(unittest.TestCase):
+class TestModelWithCustomLookup(unittest.TestCase):
     def setUp(self):
         Example.objects.all().delete()
         self.example1, self.example2, self.example3 = create_example_records()
-        self.ex_unchained = Unchained("examples")
+        self.eqb = EncryptedQueryBuilder("examples")
 
     def test_string_equals(self):
-        found = Example.objects.get(self.ex_unchained(encrypted_utf8_str="string123"))
+        found = Example.objects.get(self.eqb(encrypted_utf8_str="string123"))
         self.assertEqual(found.encrypted_utf8_str, "string123")
 
     def test_string_contains(self):
-        found = Example.objects.get(
-            self.ex_unchained(encrypted_utf8_str__s_contains="yet")
-        )
+        found = Example.objects.get(self.eqb(encrypted_utf8_str__s_contains="yet"))
         self.assertEqual(found.encrypted_utf8_str, "yet_another")
 
     def test_json_contains(self):
-        found = Example.objects.get(
-            self.ex_unchained(encrypted_jsonb__j_contains={"key": []})
-        )
+        found = Example.objects.get(self.eqb(encrypted_jsonb__j_contains={"key": []}))
         self.assertEqual(
             {"key": ["value"], "num": 1, "cat": "a"}, found.encrypted_jsonb
         )
 
     def test_greater_than(self):
-        found = Example.objects.get(self.ex_unchained(encrypted_float__gt=3.0))
+        found = Example.objects.get(self.eqb(encrypted_float__gt=3.0))
         self.assertEqual(found.encrypted_float, 5.0)
 
     def test_less_than_and_json_contains(self):
         found = Example.objects.get(
-            self.ex_unchained(
-                encrypted_float__lt=3.0, encrypted_jsonb__j_contains={"cat": "b"}
-            )
+            self.eqb(encrypted_float__lt=3.0, encrypted_jsonb__j_contains={"cat": "b"})
         )
         self.assertEqual(found.encrypted_float, 2.1)
+
+    def test_text_contains_with_float_lt(self):
+        found = Example.objects.get(
+            encrypted_utf8_str__contains="another", encrypted_float__lt=3.0
+        )
+        self.assertEqual(found.encrypted_float, 2.1)
+
+    def test_plaintext_lt_with_float_lt(self):
+        found = Example.objects.get(plain_int__lte=1, encrypted_float__lt=2.0)
+        self.assertEqual(found.encrypted_float, 1.1)
+
+    def test_text_exact_match(self):
+        found = Example.objects.get(encrypted_utf8_str__eq="string123")
+        self.assertEqual(found.encrypted_utf8_str, "string123")
+
+    def test_text_partial_match(self):
+        found = Example.objects.get(encrypted_utf8_str__contains="yet")
+        self.assertEqual(found.encrypted_utf8_str, "yet_another")
+
+    def test_float_ore_lt(self):
+        found = Example.objects.get(encrypted_float__lt=2.0)
+        self.assertEqual(found.encrypted_float, 1.1)
+
+    def test_float_ore_gt(self):
+        found = Example.objects.get(encrypted_float__gt=3.0)
+        self.assertEqual(found.encrypted_float, 5.0)
+
+    def test_int_ore_lt(self):
+        found = Example.objects.get(encrypted_int__lt=0)
+        self.assertEqual(found.encrypted_int, -1)
+
+    def test_int_ore_gt(self):
+        found = Example.objects.get(encrypted_int__gt=0)
+        self.assertEqual(found.encrypted_int, 1)

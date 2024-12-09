@@ -4,6 +4,7 @@ from datetime import datetime
 from django.db.models import Func, JSONField, Aggregate
 from django.db.models.fields import BooleanField
 from django.db.models import Q, F, Value
+from django.db.models.lookups import Lookup
 from eqlpy.eql_types import EqlFloat, EqlText, EqlJsonb
 from functools import reduce
 
@@ -97,8 +98,62 @@ class EncryptedJsonb(EncryptedValue):
         return json.loads(value)
 
 
+class EncryptedUniqueEquals(Lookup):
+    lookup_name = "eq"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_unique_v1(%s) = cs_unique_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedText.register_lookup(EncryptedUniqueEquals)
+
+
+class EncryptedTextContains(Lookup):
+    lookup_name = "contains"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_match_v1(%s) @> cs_match_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedText.register_lookup(EncryptedTextContains)
+
+
+class EncryptedOreLt(Lookup):
+    lookup_name = "lt"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_ore_64_8_v1(%s) < cs_ore_64_8_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedFloat.register_lookup(EncryptedOreLt)
+EncryptedInt.register_lookup(EncryptedOreLt)
+
+
+class EncryptedOreGt(Lookup):
+    lookup_name = "gt"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_ore_64_8_v1(%s) > cs_ore_64_8_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedFloat.register_lookup(EncryptedOreGt)
+EncryptedInt.register_lookup(EncryptedOreGt)
+
+
 # Experimental query interface
-class Unchained(object):
+class EncryptedQueryBuilder(object):
     def __init__(self, table):
         self.table = table
 

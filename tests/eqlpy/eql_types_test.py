@@ -104,33 +104,33 @@ class EqlTest(unittest.TestCase):
 
     def test_eql_row_makes_row(self):
         column_function_mapping = {
-            "encrypted_int": EqlInt.from_parsed_json,
-            "encrypted_boolean": EqlBool.from_parsed_json,
-            "encrypted_date": EqlDate.from_parsed_json,
-            "encrypted_float": EqlFloat.from_parsed_json,
-            "encrypted_utf8_str": EqlText.from_parsed_json,
-            "encrypted_jsonb": EqlText.from_parsed_json,
+            "age": EqlInt.from_parsed_json,
+            "is_citizen": EqlBool.from_parsed_json,
+            "start_date": EqlDate.from_parsed_json,
+            "weight": EqlFloat.from_parsed_json,
+            "name": EqlText.from_parsed_json,
+            "extra_info": EqlText.from_parsed_json,
         }
 
         eql_row = EqlRow(
             column_function_mapping,
             {
-                "encrypted_int": json.loads(
+                "age": json.loads(
                     EqlInt(1, "table", "column").to_db_format()
                 ),
-                "encrypted_boolean": json.loads(
+                "is_citizen": json.loads(
                     EqlBool(True, "table", "column").to_db_format()
                 ),
-                "encrypted_date": json.loads(
+                "start_date": json.loads(
                     EqlDate(date(2024, 11, 1), "table", "column").to_db_format()
                 ),
-                "encrypted_float": json.loads(
+                "weight": json.loads(
                     EqlFloat(1.1, "table", "column").to_db_format()
                 ),
-                "encrypted_utf8_str": json.loads(
+                "name": json.loads(
                     EqlText("text", "table", "column").to_db_format()
                 ),
-                "encrypted_jsonb": json.loads(
+                "extra_info": json.loads(
                     EqlJsonb('{"a": 1}', "table", "column").to_db_format()
                 ),
             },
@@ -139,12 +139,12 @@ class EqlTest(unittest.TestCase):
         self.assertEqual(
             eql_row.row,
             {
-                "encrypted_int": 1,
-                "encrypted_boolean": True,
-                "encrypted_date": date(2024, 11, 1),
-                "encrypted_float": 1.1,
-                "encrypted_utf8_str": "text",
-                "encrypted_jsonb": '"{\\"a\\": 1}"',
+                "age": 1,
+                "is_citizen": True,
+                "start_date": date(2024, 11, 1),
+                "weight": 1.1,
+                "name": "text",
+                "extra_info": '"{\\"a\\": 1}"',
             },
         )
 

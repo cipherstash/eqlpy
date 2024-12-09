@@ -4,6 +4,7 @@ from datetime import datetime
 from django.db.models import Func, JSONField, Aggregate
 from django.db.models.fields import BooleanField
 from django.db.models import Q, F, Value
+from django.db.models.lookups import Lookup
 from eqlpy.eql_types import EqlFloat, EqlText, EqlJsonb
 from functools import reduce
 
@@ -97,45 +98,86 @@ class EncryptedJsonb(EncryptedValue):
         return json.loads(value)
 
 
-# Experimental query interface
-class Unchained(object):
-    def __init__(self, table):
-        self.table = table
+class EncryptedUniqueEquals(Lookup):
+    lookup_name = "eq"
 
-    def __call__(self, **kwargs):
-        query_exps = []
-        for key, value in kwargs.items():
-            # if splittable by __, then get col, op from key, val from value
-            if "__" in key:
-                col, op = key.split("__", maxsplit=1)
-                if op == "s_contains":
-                    term = EqlText(value, self.table, col).to_db_format("match")
-                    query = Q(CsContains(CsMatchV1(F(col)), CsMatchV1(Value(term))))
-                    query_exps.append(query)
-                elif op == "j_contains":
-                    term = EqlJsonb(value, self.table, col).to_db_format("ste_vec")
-                    query = Q(CsContains(CsSteVecV1(F(col)), CsSteVecV1(Value(term))))
-                    query_exps.append(query)
-                elif op == "gt":
-                    term = EqlFloat(value, self.table, col).to_db_format("ore")
-                    query = Q(CsGt(CsOre648V1(F(col)), CsOre648V1(Value(term))))
-                    query_exps.append(query)
-                elif op == "lt":
-                    term = EqlFloat(value, self.table, col).to_db_format("ore")
-                    query = Q(CsLt(CsOre648V1(F(col)), CsOre648V1(Value(term))))
-                    query_exps.append(query)
-                else:
-                    raise ValueError(f"Unsupported operator: {op}")
-            else:
-                # key does not contain __ (eg. age__gt ), so it's exact match
-                term = EqlText(value, self.table, key).to_db_format("unique")
-                query = Q(CsEquals(CsUniqueV1(F(key)), CsUniqueV1(Value(term))))
-                query_exps.append(query)
-        return reduce(lambda x, y: x & y, query_exps)
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        # this could also be 'ore'?
+        rhs_params = [dict(e, q="unique") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_unique_v1(%s) = cs_unique_v1(%s)" % (lhs, rhs), params
 
+
+EncryptedText.register_lookup(EncryptedUniqueEquals)
+
+
+class EncryptedTextContains(Lookup):
+    lookup_name = "contains"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        rhs_params = [dict(e, q="match") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_match_v1(%s) @> cs_match_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedText.register_lookup(EncryptedTextContains)
+
+
+class EncryptedOreLt(Lookup):
+    lookup_name = "lt"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        rhs_params = [dict(e, q="ore") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_ore_64_8_v1(%s) < cs_ore_64_8_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedFloat.register_lookup(EncryptedOreLt)
+EncryptedInt.register_lookup(EncryptedOreLt)
+
+
+class EncryptedOreGt(Lookup):
+    lookup_name = "gt"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        rhs_params = [dict(e, q="ore") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_ore_64_8_v1(%s) > cs_ore_64_8_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedFloat.register_lookup(EncryptedOreGt)
+EncryptedInt.register_lookup(EncryptedOreGt)
+
+
+class EncryptedJsonContains(Lookup):
+    lookup_name = "contains"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        rhs_params = [dict(e, q="ste_vec") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_ste_vec_v1(%s) @> cs_ste_vec_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedJsonb.register_lookup(EncryptedJsonContains)
 
 # EQL functions
 # These classes are data structures that represent EQL functions
+# Needed for complex EQL queries
 
 
 class CsMatchV1(Func):

@@ -7,7 +7,7 @@ from eqlpy.eql_types import EqlFloat, EqlText, EqlJsonb
 from eqlpy.eqlalchemy import *
 
 
-class TestExampleModel(unittest.TestCase):
+class TestCustomerModel(unittest.TestCase):
     pg_password = os.getenv("PGPASSWORD", "postgres")
     pg_user = os.getenv("PGUSER", "postgres")
     pg_host = os.getenv("PGHOST", "localhost")
@@ -15,14 +15,14 @@ class TestExampleModel(unittest.TestCase):
     pg_db = os.getenv("PGDATABASE", "eqlpy_test")
 
     @classmethod
-    def create_example_record(cls, id, utf8_str, jsonb, float_val, date_val, bool_val):
-        ex = Example(
-            e_int=id,
-            e_utf8_str=utf8_str,
-            e_jsonb=jsonb,
-            e_float=float_val,
-            e_date=date_val,
-            e_bool=bool_val,
+    def create_customer_record(cls, id, utf8_str, jsonb, float_val, date_val, bool_val):
+        ex = Customer(
+            e_age=id,
+            e_name=utf8_str,
+            e_extra_info=jsonb,
+            e_weight=float_val,
+            e_start_date=date_val,
+            e_is_citizen=bool_val,
         )
         cls.session.add(ex)
         cls.session.commit()
@@ -37,26 +37,27 @@ class TestExampleModel(unittest.TestCase):
         self.session = Session()
         BaseModel.metadata.create_all(self.engine)
 
-        self.session.query(Example).delete()
+        self.session.query(Customer).delete()
+        self.session.execute(text("SELECT cs_refresh_encrypt_config()"))
 
-        self.example1 = self.create_example_record(
-            1,
-            "string123",
+        self.customer1 = self.create_customer_record(
+            31,
+            "Alice Developer",
             {"key": ["value"], "num": 1, "cat": "a"},
-            1.1,
+            51.1,
             date(2024, 1, 1),
             True,
         )
-        self.create_example_record(
-            -1,
-            '"another_example"',
+        self.create_customer_record(
+            29,
+            '"Bob Customer"',
             {"num": 2, "cat": "b"},
-            2.1,
+            82.1,
             date(2024, 1, 2),
             False,
         )
-        self.create_example_record(
-            0, "yet_another", {"num": 3, "cat": "b"}, 5.0, date(2024, 1, 3), False
+        self.create_customer_record(
+            30, "Carol Customer", {"num": 3, "cat": "b"}, 55.0, date(2024, 1, 3), False
         )
 
         self.session.commit()
@@ -65,167 +66,160 @@ class TestExampleModel(unittest.TestCase):
         self.session.rollback()
 
     # Simple tests for storing and loading encrypted columns
-    def test_encrypted_int(self):
-        found = self.session.query(Example).filter(Example.id == self.example1.id).one()
-        self.assertEqual(found.encrypted_int, 1)
-
-    def test_encrypted_boolean(self):
-        found = self.session.query(Example).filter(Example.id == self.example1.id).one()
-        self.assertEqual(found.encrypted_boolean, True)
-
-    def test_encrypted_date(self):
-        found = self.session.query(Example).filter(Example.id == self.example1.id).one()
-        self.assertEqual(found.encrypted_date, date(2024, 1, 1))
-
-    def test_encrypted_float(self):
-        found = self.session.query(Example).filter(Example.id == self.example1.id).one()
-        self.assertEqual(found.encrypted_float, 1.1)
-
-    def test_encrypted_utf8_str(self):
-        found = self.session.query(Example).filter(Example.id == self.example1.id).one()
-        self.assertEqual(found.encrypted_utf8_str, "string123")
-
-    def test_encrypted_jsonb(self):
-        found = self.session.query(Example).filter(Example.id == self.example1.id).one()
-        self.assertEqual(
-            found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
+    def test_age(self):
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
         )
+        self.assertEqual(found.age, 31)
+
+    def test_is_citizen(self):
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
+        self.assertEqual(found.is_citizen, True)
+
+    def test_start_date(self):
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
+        self.assertEqual(found.start_date, date(2024, 1, 1))
+
+    def test_weight(self):
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
+        self.assertEqual(found.weight, 51.1)
+
+    def test_name(self):
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
+        self.assertEqual(found.name, "Alice Developer")
+
+    def test_extra_info(self):
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     # Simple update test for encrypted columns
     def test_update_encrypted_columns(self):
-        example = (
-            self.session.query(Example).filter(Example.id == self.example1.id).one()
+        customer = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
         )
-        example.encrypted_float = 99.9
-        example.encrypted_utf8_str = "UPDATED_STRING"
-        example.encrypted_jsonb = {"key1": "value1", "key2": "value2"}
-        self.session.commit()
-        found = self.session.query(Example).filter(Example.id == self.example1.id).one()
-        self.assertEqual(found.encrypted_float, 99.9)
-        self.assertEqual(found.encrypted_utf8_str, "UPDATED_STRING")
-        self.assertEqual(found.encrypted_jsonb, {"key1": "value1", "key2": "value2"})
+        customer.weight = 99.9
+        customer.name = "UPDATED_STRING"
+        customer.extra_info = {"key1": "value1", "key2": "value2"}
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
+        self.assertEqual(found.weight, 99.9)
+        self.assertEqual(found.name, "UPDATED_STRING")
+        self.assertEqual(found.extra_info, {"key1": "value1", "key2": "value2"})
 
     # Queries by encrypted columns
     def test_string_partial_match_with_sql_clause(self):
         query = (
-            select(Example)
-            .where(text("cs_match_v1(encrypted_utf8_str) @> cs_match_v1(:term)"))
-            .params(
-                term=EqlText("string", "examples", "encrypted_utf8_str").to_db_format(
-                    "match"
-                )
-            )
+            select(Customer)
+            .where(text("cs_match_v1(name) @> cs_match_v1(:term)"))
+            .params(term=EqlText("ali", "customers", "name").to_db_format("match"))
         )
         found = self.session.execute(query).scalar()
-        self.assertEqual("string123", found.encrypted_utf8_str)
+        self.assertEqual("Alice Developer", found.name)
 
     def test_string_partial_match(self):
         found = (
-            self.session.query(Example)
+            self.session.query(Customer)
             .filter(
-                cs_match_v1(Example.encrypted_utf8_str).op("@>")(
-                    cs_match_v1(
-                        EqlText(
-                            "string", "examples", "encrypted_utf8_str"
-                        ).to_db_format()
-                    )
+                cs_match_v1(Customer.name).op("@>")(
+                    cs_match_v1(EqlText("ali", "customers", "name").to_db_format())
                 )
             )
             .one()
         )
-        self.assertEqual("string123", found.encrypted_utf8_str)
+        self.assertEqual("Alice Developer", found.name)
 
     def test_string_exact_match_with_sql_clause(self):
         query = (
-            select(Example)
-            .where(text("cs_unique_v1(encrypted_utf8_str) == cs_unique_v1(:term)"))
+            select(Customer)
+            .where(text("cs_unique_v1(name) == cs_unique_v1(:term)"))
             .params(
-                term=EqlText(
-                    "string123", "examples", "encrypted_utf8_str"
-                ).to_db_format("unique")
+                term=EqlText("Alice Developer", "customers", "name").to_db_format(
+                    "unique"
+                )
             )
         )
         found = self.session.execute(query).scalar()
-        self.assertEqual("string123", found.encrypted_utf8_str)
+        self.assertEqual("Alice Developer", found.name)
 
     def test_string_exact_match(self):
         found = (
-            self.session.query(Example)
+            self.session.query(Customer)
             .filter(
-                cs_unique_v1(Example.encrypted_utf8_str)
+                cs_unique_v1(Customer.name)
                 == cs_unique_v1(
-                    EqlText(
-                        "string123", "examples", "encrypted_utf8_str"
-                    ).to_db_format()
+                    EqlText("Alice Developer", "customers", "name").to_db_format()
                 )
             )
             .one()
         )
-        self.assertEqual(found.encrypted_utf8_str, "string123")
+        self.assertEqual(found.name, "Alice Developer")
 
     def test_float_ore_with_sql_clause(self):
         query = (
-            select(Example)
-            .where(text("cs_ore_64_8_v1(encrypted_float) > cs_ore_64_8_v1(:term)"))
-            .params(
-                term=EqlFloat(2.0, "examples", "encrypted_float").to_db_format("ore")
-            )
+            select(Customer)
+            .where(text("cs_ore_64_8_v1(weight) > cs_ore_64_8_v1(:term)"))
+            .params(term=EqlFloat(80.0, "customers", "weight").to_db_format("ore"))
         )
         found = self.session.execute(query).scalar()
-        self.assertEqual(2.1, found.encrypted_float)
-        self.assertEqual('"another_example"', found.encrypted_utf8_str)
+        self.assertEqual(82.1, found.weight)
+        self.assertEqual('"Bob Customer"', found.name)
 
     def test_float_ore(self):
         found = (
-            self.session.query(Example)
+            self.session.query(Customer)
             .filter(
-                cs_ore_64_8_v1(Example.encrypted_float)
-                < cs_ore_64_8_v1(
-                    EqlFloat(1.5, "examples", "encrypted_float").to_db_format()
-                )
+                cs_ore_64_8_v1(Customer.weight)
+                < cs_ore_64_8_v1(EqlFloat(51.5, "customers", "weight").to_db_format())
             )
             .one()
         )
-        self.assertEqual(found.encrypted_float, 1.1)
+        self.assertEqual(found.weight, 51.1)
 
     # JSONB Qqueries
     def test_jsonb_containment_1_with_sql_clause(self):
         query = (
-            select(Example)
-            .where(text("cs_ste_vec_v1(encrypted_jsonb) @> cs_ste_vec_v1(:term)"))
+            select(Customer)
+            .where(text("cs_ste_vec_v1(extra_info) @> cs_ste_vec_v1(:term)"))
             .params(
-                term=EqlJsonb({"key": []}, "examples", "encrypted_jsonb").to_db_format(
+                term=EqlJsonb({"key": []}, "customers", "extra_info").to_db_format(
                     "ste_vec"
                 )
             )
         )
         found = self.session.execute(query).scalar()
-        self.assertEqual(
-            found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_containment_1(self):
         found = (
-            self.session.query(Example)
+            self.session.query(Customer)
             .filter(
-                cs_ste_vec_v1(Example.encrypted_jsonb).op("@>")(
+                cs_ste_vec_v1(Customer.extra_info).op("@>")(
                     cs_ste_vec_v1(
-                        EqlJsonb(
-                            {"key": []}, "examples", "encrypted_jsonb"
-                        ).to_db_format("ste_vec")
+                        EqlJsonb({"key": []}, "customers", "extra_info").to_db_format(
+                            "ste_vec"
+                        )
                     )
                 )
             )
             .one()
         )
-        self.assertEqual(
-            found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_containment_2_with_sql_clause(self):
         query = (
-            select(Example)
-            .where(text("cs_ste_vec_v1(encrypted_jsonb) <@ cs_ste_vec_v1(:term)"))
+            select(Customer)
+            .where(text("cs_ste_vec_v1(extra_info) <@ cs_ste_vec_v1(:term)"))
             .params(
                 term=EqlJsonb(
                     {
@@ -234,21 +228,19 @@ class TestExampleModel(unittest.TestCase):
                         "cat": "a",
                         "non-existent": "val",
                     },
-                    "examples",
-                    "encrypted_jsonb",
+                    "customers",
+                    "extra_info",
                 ).to_db_format("ste_vec")
             )
         )
         found = self.session.execute(query).scalar()
-        self.assertEqual(
-            found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_containment_2(self):
         found = (
-            self.session.query(Example)
+            self.session.query(Customer)
             .filter(
-                cs_ste_vec_v1(Example.encrypted_jsonb).op("<@")(
+                cs_ste_vec_v1(Customer.extra_info).op("<@")(
                     cs_ste_vec_v1(
                         EqlJsonb(
                             {
@@ -257,26 +249,22 @@ class TestExampleModel(unittest.TestCase):
                                 "cat": "a",
                                 "non-existent": "val",
                             },
-                            "examples",
-                            "encrypted_jsonb",
+                            "customers",
+                            "extra_info",
                         ).to_db_format("ste_vec")
                     )
                 )
             )
             .one()
         )
-        self.assertEqual(
-            found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_field_extraction_with_sql_clause(self):
         query = (
-            select(
-                text("cs_ste_vec_value_v1(encrypted_jsonb, :term) AS extracted_value")
-            )
-            .select_from(Example)
+            select(text("cs_ste_vec_value_v1(extra_info, :term) AS extracted_value"))
+            .select_from(Customer)
             .params(
-                term=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
+                term=EqlJsonb("$.num", "customers", "extra_info").to_db_format(
                     "ejson_path"
                 ),
             )
@@ -288,10 +276,8 @@ class TestExampleModel(unittest.TestCase):
     def test_jsonb_field_extraction(self):
         found = self.session.query(
             cs_ste_vec_value_v1(
-                Example.encrypted_jsonb,
-                EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
-                    "ejson_path"
-                ),
+                Customer.extra_info,
+                EqlJsonb("$.num", "customers", "extra_info").to_db_format("ejson_path"),
             ).label("extracted_value")
         ).all()
         extracted = list(
@@ -304,98 +290,88 @@ class TestExampleModel(unittest.TestCase):
 
     def test_jsonb_field_in_where_with_sql_clause(self):
         query = (
-            select(Example)
+            select(Customer)
             .where(
                 text(
-                    "cs_ste_vec_term_v1(encrypted_jsonb, :term1) < cs_ste_vec_term_v1(:term2)"
+                    "cs_ste_vec_term_v1(extra_info, :term1) < cs_ste_vec_term_v1(:term2)"
                 )
             )
             .params(
-                term1=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
+                term1=EqlJsonb("$.num", "customers", "extra_info").to_db_format(
                     "ejson_path"
                 ),
-                term2=EqlJsonb(2, "examples", "encrypted_jsonb").to_db_format(
-                    "ste_vec"
-                ),
+                term2=EqlJsonb(2, "customers", "extra_info").to_db_format("ste_vec"),
             )
         )
         found = self.session.execute(query).scalar()
-        self.assertEqual(
-            found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_field_in_where(self):
         found = (
-            self.session.query(Example)
+            self.session.query(Customer)
             .filter(
                 cs_ste_vec_term_v1(
-                    Example.encrypted_jsonb,
-                    EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
+                    Customer.extra_info,
+                    EqlJsonb("$.num", "customers", "extra_info").to_db_format(
                         "ejson_path"
                     ),
                 )
                 < (
                     cs_ste_vec_term_v1(
-                        EqlJsonb(2, "examples", "encrypted_jsonb").to_db_format(
-                            "ste_vec"
-                        )
+                        EqlJsonb(2, "customers", "extra_info").to_db_format("ste_vec")
                     )
                 )
             )
             .one()
         )
-        self.assertEqual(
-            found.encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_field_in_order_by_with_sql_clause(self):
         query = (
-            select(Example)
-            .order_by(text("cs_ste_vec_term_v1(encrypted_jsonb, :term) DESC"))
+            select(Customer)
+            .order_by(text("cs_ste_vec_term_v1(extra_info, :term) DESC"))
             .params(
-                term=EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
+                term=EqlJsonb("$.num", "customers", "extra_info").to_db_format(
                     "ejson_path"
                 )
             )
         )
         found = self.session.execute(query).all()
-        self.assertEqual(found[0][0].encrypted_jsonb, {"num": 3, "cat": "b"})
-        self.assertEqual(found[1][0].encrypted_jsonb, {"num": 2, "cat": "b"})
+        self.assertEqual(found[0][0].extra_info, {"num": 3, "cat": "b"})
+        self.assertEqual(found[1][0].extra_info, {"num": 2, "cat": "b"})
         self.assertEqual(
-            found[2][0].encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
+            found[2][0].extra_info, {"key": ["value"], "num": 1, "cat": "a"}
         )
 
     def test_jsonb_field_in_order_by(self):
         found = (
-            self.session.query(Example)
+            self.session.query(Customer)
             .order_by(
                 cs_ste_vec_term_v1(
-                    Example.encrypted_jsonb,
-                    EqlJsonb("$.num", "examples", "encrypted_jsonb").to_db_format(
+                    Customer.extra_info,
+                    EqlJsonb("$.num", "customers", "extra_info").to_db_format(
                         "ejson_path"
                     ),
                 ).desc()
             )
             .all()
         )
-        self.assertEqual(found[0].encrypted_jsonb, {"num": 3, "cat": "b"})
-        self.assertEqual(found[1].encrypted_jsonb, {"num": 2, "cat": "b"})
-        self.assertEqual(
-            found[2].encrypted_jsonb, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found[0].extra_info, {"num": 3, "cat": "b"})
+        self.assertEqual(found[1].extra_info, {"num": 2, "cat": "b"})
+        self.assertEqual(found[2].extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_field_in_group_by_with_sql_clause(self):
         query = (
             select(
                 text(
-                    "cs_grouped_value_v1(cs_ste_vec_value_v1(encrypted_jsonb, :term)) AS category"
+                    "cs_grouped_value_v1(cs_ste_vec_value_v1(extra_info, :term)) AS category"
                 ),
                 text("COUNT(*)"),
             )
-            .select_from(Example)
-            .group_by(text("cs_ste_vec_term_v1(encrypted_jsonb, :term)"))
+            .select_from(Customer)
+            .group_by(text("cs_ste_vec_term_v1(extra_info, :term)"))
             .params(
-                term=EqlJsonb("$.cat", "examples", "encrypted_jsonb").to_db_format(
+                term=EqlJsonb("$.cat", "customers", "extra_info").to_db_format(
                     "ejson_path"
                 )
             )
@@ -413,8 +389,8 @@ class TestExampleModel(unittest.TestCase):
             self.session.query(
                 cs_grouped_value_v1(
                     cs_ste_vec_value_v1(
-                        Example.encrypted_jsonb,
-                        EqlJsonb("$.cat", "examples", "encrypted_jsonb").to_db_format(
+                        Customer.extra_info,
+                        EqlJsonb("$.cat", "customers", "extra_info").to_db_format(
                             "ejson_path"
                         ),
                     )
@@ -423,8 +399,8 @@ class TestExampleModel(unittest.TestCase):
             )
             .group_by(
                 cs_ste_vec_term_v1(
-                    Example.encrypted_jsonb,
-                    EqlJsonb("$.cat", "examples", "encrypted_jsonb").to_db_format(
+                    Customer.extra_info,
+                    EqlJsonb("$.cat", "customers", "extra_info").to_db_format(
                         "ejson_path"
                     ),
                 )
@@ -440,46 +416,42 @@ class TestExampleModel(unittest.TestCase):
         )
 
 
-class Example(BaseModel):
-    __tablename__ = "examples"
+class Customer(BaseModel):
+    __tablename__ = "customers"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    encrypted_int = mapped_column(EncryptedInt(__tablename__, "encrypted_int"))
-    encrypted_boolean = mapped_column(
-        EncryptedBoolean(__tablename__, "encrypted_boolean")
-    )
-    encrypted_date = mapped_column(EncryptedDate(__tablename__, "encrypted_date"))
-    encrypted_float = mapped_column(EncryptedFloat(__tablename__, "encrypted_float"))
-    encrypted_utf8_str = mapped_column(
-        EncryptedUtf8Str(__tablename__, "encrypted_utf8_str")
-    )
-    encrypted_jsonb = mapped_column(EncryptedJsonb(__tablename__, "encrypted_jsonb"))
+    age = mapped_column(EncryptedInt(__tablename__, "age"))
+    is_citizen = mapped_column(EncryptedBoolean(__tablename__, "is_citizen"))
+    start_date = mapped_column(EncryptedDate(__tablename__, "start_date"))
+    weight = mapped_column(EncryptedFloat(__tablename__, "weight"))
+    name = mapped_column(EncryptedUtf8Str(__tablename__, "name"))
+    extra_info = mapped_column(EncryptedJsonb(__tablename__, "extra_info"))
 
     def __init__(
         self,
-        e_utf8_str=None,
-        e_jsonb=None,
-        e_int=None,
-        e_float=None,
-        e_date=None,
-        e_bool=None,
+        e_name=None,
+        e_extra_info=None,
+        e_age=None,
+        e_weight=None,
+        e_start_date=None,
+        e_is_citizen=None,
     ):
-        self.encrypted_utf8_str = e_utf8_str
-        self.encrypted_jsonb = e_jsonb
-        self.encrypted_int = e_int
-        self.encrypted_float = e_float
-        self.encrypted_date = e_date
-        self.encrypted_boolean = e_bool
+        self.name = e_name
+        self.extra_info = e_extra_info
+        self.age = e_age
+        self.weight = e_weight
+        self.start_date = e_start_date
+        self.is_citizen = e_is_citizen
 
     def __repr__(self):
         return (
-            "<Example("
+            "<Customer("
             f"id={self.id}, "
-            f"encrypted_utf8_str={self.encrypted_utf8_str}, "
-            f"encrypted_jsonb={self.encrypted_jsonb}, "
-            f"encrypted_int={self.encrypted_int}, "
-            f"encrypted_float={self.encrypted_float}, "
-            f"encrypted_date={self.encrypted_date}, "
-            f"encrypted_boolean={self.encrypted_boolean}"
+            f"name={self.name}, "
+            f"extra_info={self.extra_info}, "
+            f"age={self.age}, "
+            f"weight={self.weight}, "
+            f"start_date={self.start_date}, "
+            f"is_citizen={self.is_citizen}"
             ")>"
         )

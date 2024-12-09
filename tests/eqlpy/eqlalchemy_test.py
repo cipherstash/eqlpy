@@ -11,7 +11,7 @@ class EqlAlchemyTest(unittest.TestCase):
         self.assertEqual(parsed["i"]["c"], "column")
         self.assertEqual(parsed["v"], 1)
 
-    def test_encrypted_int(self):
+    def test_age(self):
         col_type = EncryptedInt("table", "column")
         bound = col_type.process_bind_param(-2, None)
         parsed = json.loads(bound)
@@ -21,7 +21,7 @@ class EqlAlchemyTest(unittest.TestCase):
         result = col_type.process_result_value(parsed, None)
         self.assertEqual(result, -2)
 
-    def test_encrypted_boolean_false(self):
+    def test_is_citizen_false(self):
         col_type = EncryptedBoolean("table", "column")
         bound = col_type.process_bind_param(False, None)
         parsed = json.loads(bound)
@@ -31,7 +31,7 @@ class EqlAlchemyTest(unittest.TestCase):
         result = col_type.process_result_value(parsed, None)
         self.assertEqual(result, False)
 
-    def test_encrypted_boolean_true(self):
+    def test_is_citizen_true(self):
         col_type = EncryptedBoolean("table", "column")
         bound = col_type.process_bind_param(True, None)
         parsed = json.loads(bound)
@@ -41,7 +41,7 @@ class EqlAlchemyTest(unittest.TestCase):
         result = col_type.process_result_value(parsed, None)
         self.assertEqual(result, True)
 
-    def test_encrypted_date(self):
+    def test_start_date(self):
         col_type = EncryptedDate("table", "column")
         bound = col_type.process_bind_param(date(2024, 11, 17), None)
         parsed = json.loads(bound)
@@ -51,7 +51,7 @@ class EqlAlchemyTest(unittest.TestCase):
         result = col_type.process_result_value(parsed, None)
         self.assertEqual(result, date(2024, 11, 17))
 
-    def test_encrypted_float(self):
+    def test_weight(self):
         col_type = EncryptedFloat("table", "column")
         bound = col_type.process_bind_param(-0.01, None)
         parsed = json.loads(bound)
@@ -61,7 +61,7 @@ class EqlAlchemyTest(unittest.TestCase):
         result = col_type.process_result_value(parsed, None)
         self.assertEqual(result, -0.01)
 
-    def test_encrypted_utf8_str(self):
+    def test_name(self):
         col_type = EncryptedUtf8Str("table", "column")
         bound = col_type.process_bind_param("test string", None)
         parsed = json.loads(bound)
@@ -71,7 +71,7 @@ class EqlAlchemyTest(unittest.TestCase):
         result = col_type.process_result_value(parsed, None)
         self.assertEqual(result, "test string")
 
-    def test_encrypted_jsonb(self):
+    def test_extra_info(self):
         col_type = EncryptedJsonb("table", "column")
         bound = col_type.process_bind_param({"key": "value"}, None)
         parsed = json.loads(bound)

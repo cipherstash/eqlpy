@@ -2,50 +2,50 @@
 -- Application-specific types
 --
 
-CREATE DOMAIN examples__encrypted_big_int AS cs_encrypted_v1
+CREATE DOMAIN customers__encrypted_big_int AS cs_encrypted_v1
 CHECK(
-    VALUE#>>'{i,t}' = 'examples' AND
+    VALUE#>>'{i,t}' = 'customers' AND
     VALUE#>>'{i,c}' = 'encrypted_big_int'
 );
 
-CREATE DOMAIN examples__encrypted_boolean AS cs_encrypted_v1
+CREATE DOMAIN customers__is_citizen AS cs_encrypted_v1
 CHECK(
-    VALUE#>>'{i,t}' = 'examples' AND
-    VALUE#>>'{i,c}' = 'encrypted_boolean'
+    VALUE#>>'{i,t}' = 'customers' AND
+    VALUE#>>'{i,c}' = 'is_citizen'
 );
 
-CREATE DOMAIN examples__encrypted_date AS cs_encrypted_v1
+CREATE DOMAIN customers__start_date AS cs_encrypted_v1
 CHECK(
-    VALUE#>>'{i,t}' = 'examples' AND
-    VALUE#>>'{i,c}' = 'encrypted_date'
+    VALUE#>>'{i,t}' = 'customers' AND
+    VALUE#>>'{i,c}' = 'start_date'
 );
 
-CREATE DOMAIN examples__encrypted_float AS cs_encrypted_v1
+CREATE DOMAIN customers__weight AS cs_encrypted_v1
 CHECK(
-    VALUE#>>'{i,t}' = 'examples' AND
-    VALUE#>>'{i,c}' = 'encrypted_float'
+    VALUE#>>'{i,t}' = 'customers' AND
+    VALUE#>>'{i,c}' = 'weight'
 );
 
-CREATE DOMAIN examples__encrypted_int AS cs_encrypted_v1
+CREATE DOMAIN customers__age AS cs_encrypted_v1
 CHECK(
-    VALUE#>>'{i,t}' = 'examples' AND
-    VALUE#>>'{i,c}' = 'encrypted_int'
+    VALUE#>>'{i,t}' = 'customers' AND
+    VALUE#>>'{i,c}' = 'age'
 );
 
-CREATE DOMAIN examples__encrypted_small_int AS cs_encrypted_v1
+CREATE DOMAIN customers__encrypted_small_int AS cs_encrypted_v1
 CHECK(
-    VALUE#>>'{i,t}' = 'examples' AND
+    VALUE#>>'{i,t}' = 'customers' AND
     VALUE#>>'{i,c}' = 'encrypted_small_int'
 );
 
-CREATE DOMAIN examples__encrypted_utf8_str AS cs_encrypted_v1
+CREATE DOMAIN customers__name AS cs_encrypted_v1
 CHECK(
-    VALUE#>>'{i,t}' = 'examples' AND
-    VALUE#>>'{i,c}' = 'encrypted_utf8_str'
+    VALUE#>>'{i,t}' = 'customers' AND
+    VALUE#>>'{i,c}' = 'name'
 );
 
-CREATE DOMAIN examples__encrypted_jsonb AS cs_encrypted_v1
+CREATE DOMAIN customers__extra_info AS cs_encrypted_v1
 CHECK(
-    VALUE#>>'{i,t}' = 'examples' AND
-    VALUE#>>'{i,c}' = 'encrypted_jsonb'
+    VALUE#>>'{i,t}' = 'customers' AND
+    VALUE#>>'{i,c}' = 'extra_info'
 );

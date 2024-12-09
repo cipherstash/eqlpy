@@ -115,21 +115,15 @@ class EqlTest(unittest.TestCase):
         eql_row = EqlRow(
             column_function_mapping,
             {
-                "age": json.loads(
-                    EqlInt(1, "table", "column").to_db_format()
-                ),
+                "age": json.loads(EqlInt(1, "table", "column").to_db_format()),
                 "is_citizen": json.loads(
                     EqlBool(True, "table", "column").to_db_format()
                 ),
                 "start_date": json.loads(
                     EqlDate(date(2024, 11, 1), "table", "column").to_db_format()
                 ),
-                "weight": json.loads(
-                    EqlFloat(1.1, "table", "column").to_db_format()
-                ),
-                "name": json.loads(
-                    EqlText("text", "table", "column").to_db_format()
-                ),
+                "weight": json.loads(EqlFloat(1.1, "table", "column").to_db_format()),
+                "name": json.loads(EqlText("text", "table", "column").to_db_format()),
                 "extra_info": json.loads(
                     EqlJsonb('{"a": 1}', "table", "column").to_db_format()
                 ),

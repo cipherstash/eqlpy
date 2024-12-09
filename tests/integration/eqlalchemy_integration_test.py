@@ -67,30 +67,40 @@ class TestCustomerModel(unittest.TestCase):
 
     # Simple tests for storing and loading encrypted columns
     def test_age(self):
-        found = self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
         self.assertEqual(found.age, 31)
 
     def test_is_citizen(self):
-        found = self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
         self.assertEqual(found.is_citizen, True)
 
     def test_start_date(self):
-        found = self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
         self.assertEqual(found.start_date, date(2024, 1, 1))
 
     def test_weight(self):
-        found = self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
         self.assertEqual(found.weight, 51.1)
 
     def test_name(self):
-        found = self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
         self.assertEqual(found.name, "Alice Developer")
 
     def test_extra_info(self):
-        found = self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
-        self.assertEqual(
-            found.extra_info, {"key": ["value"], "num": 1, "cat": "a"}
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
         )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     # Simple update test for encrypted columns
     def test_update_encrypted_columns(self):
@@ -100,7 +110,9 @@ class TestCustomerModel(unittest.TestCase):
         customer.weight = 99.9
         customer.name = "UPDATED_STRING"
         customer.extra_info = {"key1": "value1", "key2": "value2"}
-        found = self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        found = (
+            self.session.query(Customer).filter(Customer.id == self.customer1.id).one()
+        )
         self.assertEqual(found.weight, 99.9)
         self.assertEqual(found.name, "UPDATED_STRING")
         self.assertEqual(found.extra_info, {"key1": "value1", "key2": "value2"})
@@ -110,11 +122,7 @@ class TestCustomerModel(unittest.TestCase):
         query = (
             select(Customer)
             .where(text("cs_match_v1(name) @> cs_match_v1(:term)"))
-            .params(
-                term=EqlText("ali", "customers", "name").to_db_format(
-                    "match"
-                )
-            )
+            .params(term=EqlText("ali", "customers", "name").to_db_format("match"))
         )
         found = self.session.execute(query).scalar()
         self.assertEqual("Alice Developer", found.name)
@@ -124,11 +132,7 @@ class TestCustomerModel(unittest.TestCase):
             self.session.query(Customer)
             .filter(
                 cs_match_v1(Customer.name).op("@>")(
-                    cs_match_v1(
-                        EqlText(
-                            "ali", "customers", "name"
-                        ).to_db_format()
-                    )
+                    cs_match_v1(EqlText("ali", "customers", "name").to_db_format())
                 )
             )
             .one()
@@ -140,9 +144,9 @@ class TestCustomerModel(unittest.TestCase):
             select(Customer)
             .where(text("cs_unique_v1(name) == cs_unique_v1(:term)"))
             .params(
-                term=EqlText(
-                    "Alice Developer", "customers", "name"
-                ).to_db_format("unique")
+                term=EqlText("Alice Developer", "customers", "name").to_db_format(
+                    "unique"
+                )
             )
         )
         found = self.session.execute(query).scalar()
@@ -154,9 +158,7 @@ class TestCustomerModel(unittest.TestCase):
             .filter(
                 cs_unique_v1(Customer.name)
                 == cs_unique_v1(
-                    EqlText(
-                        "Alice Developer", "customers", "name"
-                    ).to_db_format()
+                    EqlText("Alice Developer", "customers", "name").to_db_format()
                 )
             )
             .one()
@@ -167,9 +169,7 @@ class TestCustomerModel(unittest.TestCase):
         query = (
             select(Customer)
             .where(text("cs_ore_64_8_v1(weight) > cs_ore_64_8_v1(:term)"))
-            .params(
-                term=EqlFloat(80.0, "customers", "weight").to_db_format("ore")
-            )
+            .params(term=EqlFloat(80.0, "customers", "weight").to_db_format("ore"))
         )
         found = self.session.execute(query).scalar()
         self.assertEqual(82.1, found.weight)
@@ -180,9 +180,7 @@ class TestCustomerModel(unittest.TestCase):
             self.session.query(Customer)
             .filter(
                 cs_ore_64_8_v1(Customer.weight)
-                < cs_ore_64_8_v1(
-                    EqlFloat(51.5, "customers", "weight").to_db_format()
-                )
+                < cs_ore_64_8_v1(EqlFloat(51.5, "customers", "weight").to_db_format())
             )
             .one()
         )
@@ -200,9 +198,7 @@ class TestCustomerModel(unittest.TestCase):
             )
         )
         found = self.session.execute(query).scalar()
-        self.assertEqual(
-            found.extra_info, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_containment_1(self):
         found = (
@@ -210,17 +206,15 @@ class TestCustomerModel(unittest.TestCase):
             .filter(
                 cs_ste_vec_v1(Customer.extra_info).op("@>")(
                     cs_ste_vec_v1(
-                        EqlJsonb(
-                            {"key": []}, "customers", "extra_info"
-                        ).to_db_format("ste_vec")
+                        EqlJsonb({"key": []}, "customers", "extra_info").to_db_format(
+                            "ste_vec"
+                        )
                     )
                 )
             )
             .one()
         )
-        self.assertEqual(
-            found.extra_info, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_containment_2_with_sql_clause(self):
         query = (
@@ -240,9 +234,7 @@ class TestCustomerModel(unittest.TestCase):
             )
         )
         found = self.session.execute(query).scalar()
-        self.assertEqual(
-            found.extra_info, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_containment_2(self):
         found = (
@@ -265,15 +257,11 @@ class TestCustomerModel(unittest.TestCase):
             )
             .one()
         )
-        self.assertEqual(
-            found.extra_info, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_field_extraction_with_sql_clause(self):
         query = (
-            select(
-                text("cs_ste_vec_value_v1(extra_info, :term) AS extracted_value")
-            )
+            select(text("cs_ste_vec_value_v1(extra_info, :term) AS extracted_value"))
             .select_from(Customer)
             .params(
                 term=EqlJsonb("$.num", "customers", "extra_info").to_db_format(
@@ -289,9 +277,7 @@ class TestCustomerModel(unittest.TestCase):
         found = self.session.query(
             cs_ste_vec_value_v1(
                 Customer.extra_info,
-                EqlJsonb("$.num", "customers", "extra_info").to_db_format(
-                    "ejson_path"
-                ),
+                EqlJsonb("$.num", "customers", "extra_info").to_db_format("ejson_path"),
             ).label("extracted_value")
         ).all()
         extracted = list(
@@ -314,15 +300,11 @@ class TestCustomerModel(unittest.TestCase):
                 term1=EqlJsonb("$.num", "customers", "extra_info").to_db_format(
                     "ejson_path"
                 ),
-                term2=EqlJsonb(2, "customers", "extra_info").to_db_format(
-                    "ste_vec"
-                ),
+                term2=EqlJsonb(2, "customers", "extra_info").to_db_format("ste_vec"),
             )
         )
         found = self.session.execute(query).scalar()
-        self.assertEqual(
-            found.extra_info, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_field_in_where(self):
         found = (
@@ -336,17 +318,13 @@ class TestCustomerModel(unittest.TestCase):
                 )
                 < (
                     cs_ste_vec_term_v1(
-                        EqlJsonb(2, "customers", "extra_info").to_db_format(
-                            "ste_vec"
-                        )
+                        EqlJsonb(2, "customers", "extra_info").to_db_format("ste_vec")
                     )
                 )
             )
             .one()
         )
-        self.assertEqual(
-            found.extra_info, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_field_in_order_by_with_sql_clause(self):
         query = (
@@ -380,9 +358,7 @@ class TestCustomerModel(unittest.TestCase):
         )
         self.assertEqual(found[0].extra_info, {"num": 3, "cat": "b"})
         self.assertEqual(found[1].extra_info, {"num": 2, "cat": "b"})
-        self.assertEqual(
-            found[2].extra_info, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found[2].extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_jsonb_field_in_group_by_with_sql_clause(self):
         query = (
@@ -445,14 +421,10 @@ class Customer(BaseModel):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     age = mapped_column(EncryptedInt(__tablename__, "age"))
-    is_citizen = mapped_column(
-        EncryptedBoolean(__tablename__, "is_citizen")
-    )
+    is_citizen = mapped_column(EncryptedBoolean(__tablename__, "is_citizen"))
     start_date = mapped_column(EncryptedDate(__tablename__, "start_date"))
     weight = mapped_column(EncryptedFloat(__tablename__, "weight"))
-    name = mapped_column(
-        EncryptedUtf8Str(__tablename__, "name")
-    )
+    name = mapped_column(EncryptedUtf8Str(__tablename__, "name"))
     extra_info = mapped_column(EncryptedJsonb(__tablename__, "extra_info"))
 
     def __init__(

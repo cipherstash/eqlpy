@@ -117,9 +117,7 @@ class TestCustomerDjangoModel(unittest.TestCase):
 
     def test_extra_info(self):
         found = Customer.objects.get(id=self.customer1.id)
-        self.assertEqual(
-            found.extra_info, {"key": ["value"], "num": 1, "cat": "a"}
-        )
+        self.assertEqual(found.extra_info, {"key": ["value"], "num": 1, "cat": "a"})
 
     def test_update_encrypted_columns(self):
         customer = Customer.objects.get(id=self.customer1.id)
@@ -142,17 +140,13 @@ class TestCustomerDjangoModel(unittest.TestCase):
 
     def test_string_partial_match(self):
         term = EqlText("ali", "customers", "name").to_db_format("match")
-        query = Q(
-            CsContains(CsMatchV1(F("name")), CsMatchV1(Value(term)))
-        )
+        query = Q(CsContains(CsMatchV1(F("name")), CsMatchV1(Value(term))))
         result = Customer.objects.filter(query)
         self.assertEqual(1, result.count())
         self.assertEqual("Alice Developer", result[0].name)
 
     def test_string_exact_match_with_sql_clause(self):
-        term = EqlText("Alice Developer", "customers", "name").to_db_format(
-            "unique"
-        )
+        term = EqlText("Alice Developer", "customers", "name").to_db_format("unique")
         result = Customer.objects.raw(
             "SELECT * FROM customers WHERE cs_unique_v1(name) = cs_unique_v1(%s)",
             [term],
@@ -160,12 +154,8 @@ class TestCustomerDjangoModel(unittest.TestCase):
         self.assertEqual("Alice Developer", result.name)
 
     def test_string_exact_match(self):
-        term = EqlText("Alice Developer", "customers", "name").to_db_format(
-            "unique"
-        )
-        query = Q(
-            CsEquals(CsUniqueV1(F("name")), CsUniqueV1(Value(term)))
-        )
+        term = EqlText("Alice Developer", "customers", "name").to_db_format("unique")
+        query = Q(CsEquals(CsUniqueV1(F("name")), CsUniqueV1(Value(term))))
         found = Customer.objects.get(query)
         self.assertEqual(found.name, "Alice Developer")
 
@@ -186,26 +176,18 @@ class TestCustomerDjangoModel(unittest.TestCase):
         self.assertEqual(55.0, result[1].weight)
 
     def test_jsonb_contains_with_sql_clause(self):
-        term = EqlJsonb({"key": []}, "customers", "extra_info").to_db_format(
-            "ste_vec"
-        )
+        term = EqlJsonb({"key": []}, "customers", "extra_info").to_db_format("ste_vec")
         result = Customer.objects.raw(
             "SELECT * FROM customers WHERE cs_ste_vec_v1(extra_info) @> cs_ste_vec_v1(%s)",
             [term],
         )[0]
-        self.assertEqual(
-            {"key": ["value"], "num": 1, "cat": "a"}, result.extra_info
-        )
+        self.assertEqual({"key": ["value"], "num": 1, "cat": "a"}, result.extra_info)
 
     def test_jsonb_contains(self):
-        term = EqlJsonb({"key": []}, "customers", "extra_info").to_db_format(
-            "ste_vec"
-        )
+        term = EqlJsonb({"key": []}, "customers", "extra_info").to_db_format("ste_vec")
         query = Q(CsContains(CsSteVecV1(F("extra_info")), CsSteVecV1(Value(term))))
         found = Customer.objects.get(query)
-        self.assertEqual(
-            {"key": ["value"], "num": 1, "cat": "a"}, found.extra_info
-        )
+        self.assertEqual({"key": ["value"], "num": 1, "cat": "a"}, found.extra_info)
 
     def test_jsonb_contained_by_with_sql_clause(self):
         term = EqlJsonb(
@@ -222,9 +204,7 @@ class TestCustomerDjangoModel(unittest.TestCase):
             "SELECT * FROM customers WHERE cs_ste_vec_v1(extra_info) <@ cs_ste_vec_v1(%s)",
             [term],
         )[0]
-        self.assertEqual(
-            {"key": ["value"], "num": 1, "cat": "a"}, result.extra_info
-        )
+        self.assertEqual({"key": ["value"], "num": 1, "cat": "a"}, result.extra_info)
 
     def test_jsonb_contained_by(self):
         term = EqlJsonb(
@@ -237,18 +217,12 @@ class TestCustomerDjangoModel(unittest.TestCase):
             "customers",
             "extra_info",
         ).to_db_format("ste_vec")
-        query = Q(
-            CsContainedBy(CsSteVecV1(F("extra_info")), CsSteVecV1(Value(term)))
-        )
+        query = Q(CsContainedBy(CsSteVecV1(F("extra_info")), CsSteVecV1(Value(term))))
         found = Customer.objects.get(query)
-        self.assertEqual(
-            {"key": ["value"], "num": 1, "cat": "a"}, found.extra_info
-        )
+        self.assertEqual({"key": ["value"], "num": 1, "cat": "a"}, found.extra_info)
 
     def test_jsonb_field_extraction_with_sql_clause(self):
-        term = EqlJsonb("$.num", "customers", "extra_info").to_db_format(
-            "ejson_path"
-        )
+        term = EqlJsonb("$.num", "customers", "extra_info").to_db_format("ejson_path")
         with connection.cursor() as cursor:
             cursor.execute(
                 "SELECT cs_ste_vec_value_v1(extra_info, %s) AS extracted_value FROM customers",
@@ -260,9 +234,7 @@ class TestCustomerDjangoModel(unittest.TestCase):
         self.assertEqual(sorted(extracted), [1, 2, 3])
 
     def test_jsonb_field_extraction(self):
-        term = EqlJsonb("$.num", "customers", "extra_info").to_db_format(
-            "ejson_path"
-        )
+        term = EqlJsonb("$.num", "customers", "extra_info").to_db_format("ejson_path")
         results = Customer.objects.annotate(
             extracted_value=CsSteVecValueV1(F("extra_info"), Value(term))
         ).values_list("extracted_value", flat=True)
@@ -282,9 +254,7 @@ class TestCustomerDjangoModel(unittest.TestCase):
         self.assertEqual({"key": ["value"], "num": 1, "cat": "a"}, result.extra_info)
 
     def test_jsonb_in_where(self):
-        term1 = EqlJsonb("$.num", "customers", "extra_info").to_db_format(
-            "ejson_path"
-        )
+        term1 = EqlJsonb("$.num", "customers", "extra_info").to_db_format("ejson_path")
         term2 = EqlJsonb(2, "customers", "extra_info").to_db_format("ste_vec")
         query = Q(
             CsLt(
@@ -293,14 +263,10 @@ class TestCustomerDjangoModel(unittest.TestCase):
             )
         )
         found = Customer.objects.get(query)
-        self.assertEqual(
-            {"key": ["value"], "num": 1, "cat": "a"}, found.extra_info
-        )
+        self.assertEqual({"key": ["value"], "num": 1, "cat": "a"}, found.extra_info)
 
     def test_jsonb_field_in_order_by_with_sql_clause(self):
-        term = EqlJsonb("$.num", "customers", "extra_info").to_db_format(
-            "ejson_path"
-        )
+        term = EqlJsonb("$.num", "customers", "extra_info").to_db_format("ejson_path")
         results = Customer.objects.raw(
             "SELECT * FROM customers ORDER BY cs_ste_vec_term_v1(extra_info, %s) DESC",
             [term],
@@ -312,9 +278,7 @@ class TestCustomerDjangoModel(unittest.TestCase):
         )
 
     def test_jsonb_field_in_order_by(self):
-        term = EqlJsonb("$.num", "customers", "extra_info").to_db_format(
-            "ejson_path"
-        )
+        term = EqlJsonb("$.num", "customers", "extra_info").to_db_format("ejson_path")
         results = Customer.objects.order_by(
             CsSteVecTermV1(F("extra_info"), Value(term)).desc()
         )
@@ -325,9 +289,7 @@ class TestCustomerDjangoModel(unittest.TestCase):
         )
 
     def test_jsonb_in_group_by_with_sql_clause(self):
-        term = EqlJsonb("$.cat", "customers", "extra_info").to_db_format(
-            "ejson_path"
-        )
+        term = EqlJsonb("$.cat", "customers", "extra_info").to_db_format("ejson_path")
         with connection.cursor() as cursor:
             cursor.execute(
                 "SELECT cs_grouped_value_v1(cs_ste_vec_value_v1(extra_info, %s)) AS category, COUNT(*) FROM customers GROUP BY cs_ste_vec_term_v1(extra_info, %s)",
@@ -342,15 +304,11 @@ class TestCustomerDjangoModel(unittest.TestCase):
         self.assertEqual(sorted(counts)[1], ("b", 2))
 
     def test_jsonb_in_group_by(self):
-        term = EqlJsonb("$.cat", "customers", "extra_info").to_db_format(
-            "ejson_path"
-        )
+        term = EqlJsonb("$.cat", "customers", "extra_info").to_db_format("ejson_path")
         results = Customer.objects.values(
             cat=CsSteVecTermV1(F("extra_info"), Value(term))
         ).annotate(
-            category=CsGroupedValueV1(
-                CsSteVecValueV1(F("extra_info"), Value(term))
-            ),
+            category=CsGroupedValueV1(CsSteVecValueV1(F("extra_info"), Value(term))),
             count=Count("*"),
         )
 
@@ -363,19 +321,11 @@ class TestCustomerDjangoModel(unittest.TestCase):
 
 class Customer(models.Model):
     age = EncryptedInt(table="customers", column="age", null=True)
-    is_citizen = EncryptedBoolean(
-        table="customers", column="is_citizen", null=True
-    )
+    is_citizen = EncryptedBoolean(table="customers", column="is_citizen", null=True)
     start_date = EncryptedDate(table="customers", column="start_date", null=True)
-    weight = EncryptedFloat(
-        table="customers", column="weight", null=True
-    )
-    name = EncryptedText(
-        table="customers", column="name", null=True
-    )
-    extra_info = EncryptedJsonb(
-        table="customers", column="extra_info", null=True
-    )
+    weight = EncryptedFloat(table="customers", column="weight", null=True)
+    name = EncryptedText(table="customers", column="name", null=True)
+    extra_info = EncryptedJsonb(table="customers", column="extra_info", null=True)
     visit_count = IntegerField()
 
     class Meta:
@@ -398,9 +348,7 @@ class TestModelWithCustomLookup(unittest.TestCase):
 
     def test_json_contains(self):
         found = Customer.objects.get(self.eqb(extra_info__j_contains={"key": []}))
-        self.assertEqual(
-            {"key": ["value"], "num": 1, "cat": "a"}, found.extra_info
-        )
+        self.assertEqual({"key": ["value"], "num": 1, "cat": "a"}, found.extra_info)
 
     def test_greater_than(self):
         found = Customer.objects.get(self.eqb(weight__gt=73.0))
@@ -413,9 +361,7 @@ class TestModelWithCustomLookup(unittest.TestCase):
         self.assertEqual(found.weight, 55.0)
 
     def test_text_contains_with_float_lt(self):
-        found = Customer.objects.get(
-            name__contains="Customer", weight__lt=80.0
-        )
+        found = Customer.objects.get(name__contains="Customer", weight__lt=80.0)
         self.assertEqual(found.weight, 55.0)
 
     def test_plaintext_lt_with_float_lt(self):

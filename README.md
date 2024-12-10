@@ -61,7 +61,7 @@ TODO: How to install EQL itself?
 Let's say you have a customer model with an encrypted `name` field.
 You can use the `EncryptedText` type when defining the field in the model:
 
-```py
+```python
 from django.db import models
 from eqlpy.eqldjango import *
 

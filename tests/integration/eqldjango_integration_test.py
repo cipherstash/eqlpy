@@ -320,6 +320,7 @@ class TestCustomerDjangoModel(unittest.TestCase):
 
 
 class Customer(models.Model):
+    # investigate if we can remove table and column
     age = EncryptedInt(table="customers", column="age", null=True)
     is_citizen = EncryptedBoolean(table="customers", column="is_citizen", null=True)
     start_date = EncryptedDate(table="customers", column="start_date", null=True)
@@ -327,6 +328,7 @@ class Customer(models.Model):
     name = EncryptedText(table="customers", column="name", null=True)
     extra_info = EncryptedJsonb(table="customers", column="extra_info", null=True)
     visit_count = IntegerField()
+    json_data = JSONField(null=True)
 
     class Meta:
         db_table = "customers"
@@ -336,29 +338,6 @@ class TestModelWithCustomLookup(unittest.TestCase):
     def setUp(self):
         Customer.objects.all().delete()
         self.customer1, self.customer2, self.customer3 = create_customer_records()
-        self.eqb = EncryptedQueryBuilder("customers")
-
-    def test_string_equals(self):
-        found = Customer.objects.get(self.eqb(name="Alice Developer"))
-        self.assertEqual(found.name, "Alice Developer")
-
-    def test_string_contains(self):
-        found = Customer.objects.get(self.eqb(name__s_contains="caro"))
-        self.assertEqual(found.name, "Carol Customer")
-
-    def test_json_contains(self):
-        found = Customer.objects.get(self.eqb(extra_info__j_contains={"key": []}))
-        self.assertEqual({"key": ["value"], "num": 1, "cat": "a"}, found.extra_info)
-
-    def test_greater_than(self):
-        found = Customer.objects.get(self.eqb(weight__gt=73.0))
-        self.assertEqual(found.weight, 82.1)
-
-    def test_less_than_and_json_contains(self):
-        found = Customer.objects.get(
-            self.eqb(weight__lt=73.0, extra_info__j_contains={"cat": "b"})
-        )
-        self.assertEqual(found.weight, 55.0)
 
     def test_text_contains_with_float_lt(self):
         found = Customer.objects.get(name__contains="Customer", weight__lt=80.0)
@@ -391,3 +370,7 @@ class TestModelWithCustomLookup(unittest.TestCase):
     def test_int_ore_gt(self):
         found = Customer.objects.get(age__gt=30)
         self.assertEqual(found.age, 31)
+
+    def test_jsonb_contains(self):
+        found = Customer.objects.get(extra_info__contains={"key": []})
+        self.assertEqual(found.name, "Alice Developer")

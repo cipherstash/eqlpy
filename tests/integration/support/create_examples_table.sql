@@ -6,7 +6,7 @@ create table customers (
   age customers__age,
   name customers__name,
   extra_info customers__extra_info,
-  visit_count integer
+  visit_count integer,
 );
 
 -- Add CipherStash indexes to Encrypt config

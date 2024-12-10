@@ -1,7 +1,8 @@
 # EQL Value Classes
 
 `eqlpy` includes a low-level interface to manage [EQL](https://github.com/cipherstash/encrypt-query-language) types directly.
-If you're using Django or SQLAlchemy you probably won't need these but you'll want them to implement `eqlpy` for another ORM.
+If you're using Django or SQLAlchemy you probably won't need to use these types. 
+If you want to implement `eqlpy` for another ORM, you will need to use these types. 
 
 ## Table of contents
 

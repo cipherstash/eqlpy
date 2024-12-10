@@ -7,10 +7,8 @@
 
 ## Searchable encryption for Django and SQLAlchemy.
 
-Based on the CipherStash [Encrypt Query Language (EQL)](https://github.com/cipherstash/encrypt-query-language),
-`eqlpy` provides a simple, type-driven approach to enabling encryption in your application.
-By using EQL's built in searchable encryption schemes, your model queries retain **full** search capabilities
-including exact lookups, range queries, ordering and free text search.
+Based on the CipherStash [Encrypt Query Language (EQL)](https://github.com/cipherstash/encrypt-query-language),`eqlpy` provides a simple, type-driven approach to enabling encryption in your application.
+By using EQL's built-in searchable encryption schemes, your model queries retain **full** search capabilities, including exact lookups, range queries, ordering and free text search.
 
 ## Table of contents
 

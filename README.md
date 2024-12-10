@@ -79,7 +79,7 @@ CREATE TABLE myapp_customer (
 ```
 
 [!NOTE]
-The column type in the database is `cs_encrypted_v1` which is encrypted type defined in [EQL](https://github.com/cipherstash/encrypt-query-language/blob/main/docs/reference/PAYLOAD.md). Internally EQL just uses JSON.
+The column type in the database is `cs_encrypted_v1` which is encrypted type defined in [EQL](https://github.com/cipherstash/encrypt-query-language/blob/main/docs/reference/PAYLOAD.md). Internally EQL uses JSON.
 
 `eqlpy` supports many different data types, including numbers, dates and JSON.
 See the [Reference](#) docs for more information.

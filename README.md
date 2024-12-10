@@ -97,8 +97,7 @@ You can interact with the Django model in the same way as you normally would.
 >>> customer.save()
 ```
 
-When retrieving a record, `eqlpy` automatically decrypts the value using the credentials
-defined in the setup step.
+When retrieving a record, `eqlpy` automatically decrypts the value using the credentials defined in the setup step.
 
 ```py
 >>> customer = Customer.objects.get(customer.id)

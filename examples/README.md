@@ -13,20 +13,10 @@ These are the common prerequisites for all variations. See below for specific va
 * Docker compose
 * CipherStash account
 * (Optional) direnv or other tools to load environment variables from a file
-
-### psycopg example
-
-* psycopg 3
-
-### sqlalchemy example
-
-Please note currently pscyopg2 is required with the sqlalchemy example
-
-* sqlalchemy (2.0 or above recommended) + psycopg2
-
-### Django example
-
-* Django (5.1 or above recommended) + psycopg2
+* required ORM/database driver either of:
+  * for psycopg examples: psycopg 3
+  * for sqlalchemy examples: sqlalchemy (2.0 or above recommended) + psycopg2
+  * for Django examples: Django (5.1 or above recommended) + psycopg2 + blessed
 
 ## Setup
 

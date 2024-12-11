@@ -2,7 +2,6 @@ import django
 from django.conf import settings
 from django.db import models, connection
 from django.db.models import Q, F, Value, Count
-from eqlpy.eql_types import EqlFloat, EqlText, EqlJsonb
 from eqlpy.eqldjango import *
 from datetime import date
 import os
@@ -67,9 +66,21 @@ class Example(models.Model):
             f"str='{self.encrypted_utf8_str}', jsonb={self.encrypted_jsonb})"
         )
 
+def greet():
+    print("Welcome to CipherStash eqlpy examples!")
+    print()
+    print("These examples demonstrate basic usage of CipherStash's encryption with eqlpy and Django.")
+    print()
+
+def print_prerequisites():
+    print("Make sure you have the following prerequisites:")
+    print("  * PostgreSQL container and Proxy container running")
+    print("  * Django and psycopg2 installed")
+    print()
+
 
 def insert_example_records():
-    print("\n\nInserting an example records...", end="")
+    print("\n\nInserting example records...", end="")
     Example.objects.all().delete()
 
     example1 = Example(
@@ -103,64 +114,78 @@ def insert_example_records():
     example3.save()
 
     print("done\n")
+    print()
+    print("Encrypted records created!")
+    print()
+    print("3 Example models stored:\n")
+    print(f"  {example1}")
+    print(f"  {example2}")
+    print(f"  {example3}")
+
 
     return [example1, example2, example3]
 
 
-def print_instructions():
+def print_psql_instructions():
+    print("Now you can see the encrypted data in CipherStash Proxy and PostgreSQL.")
+    print()
+    print("For CipherStash: In another terminal window, run:\n")
+    print('    $ psql -h localhost -p 6432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example')
+    print()
     print(
-        """
-In another terminal window, you can check the data on CipherStash Proxy with (assuming you are using default setting):
-
-  $ psql -h localhost -p 6432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example
-
-Also you can check what is really stored on PostgreSQL with:
-
-  $ psql -h localhost -p 5432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example
-
-"""
+        f"      (if you get prompted for password, use '{TestSettings.pg_password}' without the surrounding quotes)\n"
     )
-    print(
-        f"If you get prompted for password, use '{TestSettings.pg_password}' (without quotes).\n"
-    )
+    prompt_enter()
+    print("To check what is actually stored on PostgreSQL, run:\n")
+    print('   $ psql -h localhost -p 5432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example')
 
 
 def query_example_match():
     print(
-        "\nQuery example for partial Match of 'string1' in examples.encrypted_utf8_str:"
+        "\nQuery example Example.objects.get(encrypted_utf8_str__match=\"str\"), which should find example1 with \"string123\":"
     )
-    term = EqlText("string", "examples", "encrypted_utf8_str").to_db_format("match")
-    record = Example.objects.filter(
-        Q(CsContains(CsMatchV1(F("encrypted_utf8_str")), CsMatchV1(Value(term))))
-    )[0]
+    record = Example.objects.get(encrypted_utf8_str__match="str")
 
+    print()
+    input("Press Enter to continue.")
     print()
     print(f"  Record found: {record}")
     print()
 
 
 def query_example_ore():
-    print("\nQuery example for 3.0 < examples.encrypted_float:")
-    term = EqlFloat(3.0, "examples", "encrypted_float").to_db_format("ore")
-    record = Example.objects.filter(
-        Q(CsGt(CsOre648V1(F("encrypted_float")), CsOre648V1(Value(term))))
-    )[0]
+    print("\nQuery example Example.objects.get(encrypted_float__gt=3.0), which should find example3 with 5.0:")
+    record = Example.objects.get(encrypted_float__gt=3.0)
 
+    print()
+    input("Press Enter to continue.")
     print()
     print(f"  Record found: {record}")
     print()
 
 
 def query_example_json_contains():
-    print('\nQuery example for examples.encrypted_json @> {"key:": []} :')
-    term = EqlJsonb({"key": []}, "examples", "encrypted_jsonb").to_db_format("ste_vec")
-    record = Example.objects.get(
-        Q(CsContains(CsSteVecV1(F("encrypted_jsonb")), CsSteVecV1(Value(term))))
-    )
+    print('\nQuery example Example.objects.get(encrypted_jsonb__contains={"key": []}), which should find example1 with {"key": ["value"], "num": 1, "cat": "a"}:')
+    record = Example.objects.get(encrypted_jsonb__contains={"key": []})
 
+    print()
+    input("Press Enter to continue.")
     print()
     print(f"  Record found: {record}")
     print()
+
+def print_end_message():
+    print("That's it! Thank you for running this example! Please look at the example code itself to see how records are created and queries are run.")
+
+step = 0
+
+def prompt_enter():
+    global step
+    print()
+    input("Press Enter to continue.")
+    print("\n\n\n\n")
+    print(f"== step {step} ==")
+    step += 1
 
 
 def main():
@@ -168,27 +193,28 @@ def main():
     with connection.cursor() as cursor:
         cursor.execute("SELECT cs_refresh_encrypt_config()")
 
+    greet()
+    prompt_enter()
+
+    print_prerequisites()
+    prompt_enter()
+
     [e1, e2, e3] = insert_example_records()
+    prompt_enter()
 
-    print_instructions()
-    input("Press Enter to continue.")
-    print()
-
-    print("A record looks like this as an Example model instance:\n")
-    print(f"  {e1}")
-    print()
-    input("Press Enter to continue.")
-    print()
+    print_psql_instructions()
+    prompt_enter()
 
     query_example_match()
-    input("Press Enter to continue.")
+    prompt_enter()
 
     query_example_ore()
-    input("Press Enter to continue.")
+    prompt_enter()
 
     query_example_json_contains()
-    input("Press Enter to continue.")
+    prompt_enter()
 
+    print_end_message()
     print("\n=== End of examples ===\n")
 
 

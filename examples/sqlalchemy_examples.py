@@ -12,20 +12,16 @@ from eqlpy.eql_types import (
 )
 
 
-class Example(BaseModel):
-    __tablename__ = "examples"
+class Customer(BaseModel):
+    __tablename__ = "customers"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    encrypted_int = mapped_column(EncryptedInt(__tablename__, "encrypted_int"))
-    encrypted_boolean = mapped_column(
-        EncryptedBoolean(__tablename__, "encrypted_boolean")
-    )
-    encrypted_date = mapped_column(EncryptedDate(__tablename__, "encrypted_date"))
-    encrypted_float = mapped_column(EncryptedFloat(__tablename__, "encrypted_float"))
-    encrypted_utf8_str = mapped_column(
-        EncryptedUtf8Str(__tablename__, "encrypted_utf8_str")
-    )
-    encrypted_jsonb = mapped_column(EncryptedJsonb(__tablename__, "encrypted_jsonb"))
+    age = mapped_column(EncryptedInt(__tablename__, "age"))
+    is_citizen = mapped_column(EncryptedBoolean(__tablename__, "is_citizen"))
+    start_date = mapped_column(EncryptedDate(__tablename__, "start_date"))
+    weight = mapped_column(EncryptedFloat(__tablename__, "weight"))
+    name = mapped_column(EncryptedUtf8Str(__tablename__, "name"))
+    extra_info = mapped_column(EncryptedJsonb(__tablename__, "extra_info"))
 
     def __init__(
         self,
@@ -36,23 +32,23 @@ class Example(BaseModel):
         e_date=None,
         e_bool=None,
     ):
-        self.encrypted_utf8_str = e_utf8_str
-        self.encrypted_jsonb = e_jsonb
-        self.encrypted_int = e_int
-        self.encrypted_float = e_float
-        self.encrypted_date = e_date
-        self.encrypted_boolean = e_bool
+        self.name = e_utf8_str
+        self.extra_info = e_jsonb
+        self.age = e_int
+        self.weight = e_float
+        self.start_date = e_date
+        self.is_citizen = e_bool
 
     def __repr__(self):
         return (
-            "<Example("
+            "<Customer("
             f"id={self.id}, "
-            f"encrypted_utf8_str={self.encrypted_utf8_str}, "
-            f"encrypted_jsonb={self.encrypted_jsonb}, "
-            f"encrypted_int={self.encrypted_int}, "
-            f"encrypted_float={self.encrypted_float}, "
-            f"encrypted_date={self.encrypted_date}, "
-            f"encrypted_boolean={self.encrypted_boolean}"
+            f"name={self.name}, "
+            f"extra_info={self.extra_info}, "
+            f"age={self.age}, "
+            f"weight={self.weight}, "
+            f"start_date={self.start_date}, "
+            f"is_citizen={self.is_citizen}"
             ")>"
         )
 
@@ -67,23 +63,23 @@ def connect_to_db():
     return session
 
 
-def insert_example_record(session):
-    print("\n\nInserting an example record...", end="")
-    session.execute(text("DELETE FROM examples"))
+def insert_customer_record(session):
+    print("\n\nInserting an customer record...", end="")
+    session.execute(text("DELETE FROM customers"))
     session.execute(text("SELECT cs_refresh_encrypt_config()"))
 
-    example_data = Example(
-        "hello, world",
+    customer_data = Customer(
+        "User Name",
         {"num": 1, "category": "a", "top": {"nested": ["a", "b", "c"]}},
-        -51,
-        -0.5,
+        51,
+        58.5,
         date(2024, 11, 19),
         False,
     )
-    session.add(example_data)
+    session.add(customer_data)
 
     print("done\n")
-    return example_data
+    return customer_data
 
 
 def print_instructions():
@@ -91,58 +87,52 @@ def print_instructions():
         """
 In another terminal window, you can check the data on CipherStash Proxy with (assuming you are using default setting):
 
-  $ psql -h localhost -p 6432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example
+  $ psql -h localhost -p 6432 -U postgres -x -c "select * from customers limit 1;" eqlpy_example
 
 Also you can check what is really stored on PostgreSQL with:
 
-  $ psql -h localhost -p 5432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example
+  $ psql -h localhost -p 5432 -U postgres -x -c "select * from customers limit 1;" eqlpy_example
 
 """
     )
 
 
-def query_example(session):
-    print(
-        "\nQuery example for partial Match of 'hello' in examples.encrypted_utf8_str:"
-    )
+def query_customer(session):
+    print("\nQuery customer for partial Match of 'hello' in customers.name:")
     record = (
-        session.query(Example)
+        session.query(Customer)
         .filter(
-            cs_match_v1(Example.encrypted_utf8_str).op("@>")(
-                cs_match_v1(
-                    EqlText("hello", "examples", "encrypted_utf8_str").to_db_format(
-                        "match"
-                    )
-                )
+            cs_match_v1(Customer.name).op("@>")(
+                cs_match_v1(EqlText("user", "customers", "name").to_db_format("match"))
             )
         )
         .one()
     )
     print()
-    print(f"  Text inside the found record: {record.encrypted_utf8_str}")
+    print(f"  Text inside the found record: {record.name}")
     print()
-    print(f"  Jsonb inside the found record: {record.encrypted_jsonb}")
+    print(f"  Jsonb inside the found record: {record.extra_info}")
 
 
 def main():
     session = connect_to_db()
 
-    ex = insert_example_record(session)
+    ex = insert_customer_record(session)
     session.commit()
 
     print_instructions()
     input("Press Enter to continue.")
     print()
 
-    print("The record looks like this as an Example model instance:\n")
+    print("The record looks like this as an Customer model instance:\n")
     print(f"  {ex}")
     print()
     input("Press Enter to continue.")
     print()
 
-    query_example(session)
+    query_customer(session)
 
-    print("\n=== End of examples ===\n")
+    print("\n=== End of customers ===\n")
 
     session.close()
 

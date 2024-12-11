@@ -1,7 +1,7 @@
 import django
 from django.conf import settings
 from django.db import models, connection
-from django.db.models import Q, F, Value, Count
+from django.db.models import Q, F, Value, Count, IntegerField
 from eqlpy.eqldjango import *
 from datetime import date
 import os
@@ -39,38 +39,35 @@ if not settings.configured:
 django.setup()
 
 
-class Example(models.Model):
-    encrypted_int = EncryptedInt(table="examples", column="encrypted_int", null=True)
-    encrypted_boolean = EncryptedBoolean(
-        table="examples", column="encrypted_boolean", null=True
-    )
-    encrypted_date = EncryptedDate(table="examples", column="encrypted_date", null=True)
-    encrypted_float = EncryptedFloat(
-        table="examples", column="encrypted_float", null=True
-    )
-    encrypted_utf8_str = EncryptedText(
-        table="examples", column="encrypted_utf8_str", null=True
-    )
-    encrypted_jsonb = EncryptedJsonb(
-        table="examples", column="encrypted_jsonb", null=True
-    )
+class Customer(models.Model):
+    age = EncryptedInt(table="customers", column="age", null=True)
+    is_citizen = EncryptedBoolean(table="customers", column="is_citizen", null=True)
+    start_date = EncryptedDate(table="customers", column="start_date", null=True)
+    weight = EncryptedFloat(table="customers", column="weight", null=True)
+    name = EncryptedText(table="customers", column="name", null=True)
+    extra_info = EncryptedJsonb(table="customers", column="extra_info", null=True)
+    visit_count = IntegerField()
 
     class Meta:
         app_label = "eqlpy.eqldjango"
-        db_table = "examples"
+        db_table = "customers"
 
     def __str__(self):
         return (
-            f"Example(id={self.id}, int={self.encrypted_int}, bool={self.encrypted_boolean}, "
-            f"date={self.encrypted_date}, float={self.encrypted_float}, "
-            f"str='{self.encrypted_utf8_str}', jsonb={self.encrypted_jsonb})"
+            f"Customer(id={self.id}, int={self.age}, bool={self.is_citizen}, "
+            f"date={self.start_date}, float={self.weight}, "
+            f"str='{self.name}', jsonb={self.extra_info})"
         )
+
 
 def greet():
     print("Welcome to CipherStash eqlpy examples!")
     print()
-    print("These examples demonstrate basic usage of CipherStash's encryption with eqlpy and Django.")
+    print(
+        "These examples demonstrate basic usage of CipherStash's encryption with eqlpy and Django."
+    )
     print()
+
 
 def print_prerequisites():
     print("Make sure you have the following prerequisites:")
@@ -81,70 +78,76 @@ def print_prerequisites():
 
 def insert_example_records():
     print("\n\nInserting example records...", end="")
-    Example.objects.all().delete()
+    Customer.objects.all().delete()
 
-    example1 = Example(
-        encrypted_int=1,
-        encrypted_boolean=True,
-        encrypted_utf8_str="string123",
-        encrypted_date=date(2024, 1, 1),
-        encrypted_float=1.1,
-        encrypted_jsonb={"key": ["value"], "num": 1, "cat": "a"},
+    customer1 = Customer(
+        age=31,
+        is_citizen=True,
+        name="Alice Developer",
+        start_date=date(2024, 1, 1),
+        weight=51.1,
+        extra_info={"key": ["value"], "num": 1, "cat": "a"},
+        visit_count=0,
     )
-    example1.save()
+    customer1.save()
 
-    example2 = Example(
-        encrypted_int=-1,
-        encrypted_boolean=False,
-        encrypted_utf8_str="another_example",
-        encrypted_date=date(2024, 1, 2),
-        encrypted_float=2.1,
-        encrypted_jsonb={"num": 2, "cat": "b"},
+    customer2 = Customer(
+        age=29,
+        is_citizen=False,
+        name="Bob Customer",
+        start_date=date(2024, 1, 2),
+        weight=82.1,
+        extra_info={"num": 2, "cat": "b"},
+        visit_count=1,
     )
-    example2.save()
+    customer2.save()
 
-    example3 = Example(
-        encrypted_int=0,
-        encrypted_boolean=False,
-        encrypted_utf8_str="yet_another",
-        encrypted_date=date(2024, 1, 3),
-        encrypted_float=5.0,
-        encrypted_jsonb={"num": 3, "cat": "b"},
+    customer3 = Customer(
+        age=30,
+        is_citizen=False,
+        name="Carol Customer",
+        start_date=date(2024, 1, 3),
+        weight=55.0,
+        extra_info={"num": 3, "cat": "b"},
+        visit_count=2,
     )
-    example3.save()
+    customer3.save()
 
     print("done\n")
     print()
     print("Encrypted records created!")
     print()
-    print("3 Example models stored:\n")
-    print(f"  {example1}")
-    print(f"  {example2}")
-    print(f"  {example3}")
+    print("3 Customer models stored:\n")
+    print(f"  {customer1}")
+    print(f"  {customer2}")
+    print(f"  {customer3}")
 
-
-    return [example1, example2, example3]
+    return [customer1, customer2, customer3]
 
 
 def print_psql_instructions():
     print("Now you can see the encrypted data in CipherStash Proxy and PostgreSQL.")
     print()
     print("For CipherStash: In another terminal window, run:\n")
-    print('    $ psql -h localhost -p 6432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example')
+    print(
+        '    $ psql -h localhost -p 6432 -U postgres -x -c "select * from customers limit 1;" eqlpy_example'
+    )
     print()
     print(
         f"      (if you get prompted for password, use '{TestSettings.pg_password}' without the surrounding quotes)\n"
     )
     prompt_enter()
     print("To check what is actually stored on PostgreSQL, run:\n")
-    print('   $ psql -h localhost -p 5432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example')
+    print(
+        '   $ psql -h localhost -p 5432 -U postgres -x -c "select * from customers limit 1;" eqlpy_example'
+    )
 
 
 def query_example_match():
     print(
-        "\nQuery example Example.objects.get(encrypted_utf8_str__match=\"str\"), which should find example1 with \"string123\":"
+        '\nQuery example Customer.objects.get(name__match="ali"), which should find customer1 with "Alice Developer":'
     )
-    record = Example.objects.get(encrypted_utf8_str__match="str")
+    record = Customer.objects.get(name__match="ali")
 
     print()
     input("Press Enter to continue.")
@@ -154,8 +157,10 @@ def query_example_match():
 
 
 def query_example_ore():
-    print("\nQuery example Example.objects.get(encrypted_float__gt=3.0), which should find example3 with 5.0:")
-    record = Example.objects.get(encrypted_float__gt=3.0)
+    print(
+        "\nQuery example Customer.objects.get(weight__gt=73.0), which should find customer2 with 82.1:"
+    )
+    record = Customer.objects.get(weight__gt=73.0)
 
     print()
     input("Press Enter to continue.")
@@ -165,8 +170,10 @@ def query_example_ore():
 
 
 def query_example_json_contains():
-    print('\nQuery example Example.objects.get(encrypted_jsonb__contains={"key": []}), which should find example1 with {"key": ["value"], "num": 1, "cat": "a"}:')
-    record = Example.objects.get(encrypted_jsonb__contains={"key": []})
+    print(
+        '\nQuery example Customer.objects.get(extra_info__contains={"key": []}), which should find customer1 with {"key": ["value"], "num": 1, "cat": "a"}:'
+    )
+    record = Customer.objects.get(extra_info__contains={"key": []})
 
     print()
     input("Press Enter to continue.")
@@ -174,10 +181,15 @@ def query_example_json_contains():
     print(f"  Record found: {record}")
     print()
 
+
 def print_end_message():
-    print("That's it! Thank you for running this example! Please look at the example code itself to see how records are created and queries are run.")
+    print(
+        "That's it! Thank you for running this! Please look at the example code itself to see how records are created and queries are run."
+    )
+
 
 step = 0
+
 
 def prompt_enter():
     global step

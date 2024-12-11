@@ -20,30 +20,30 @@ def connect_to_db():
     return conn, conn.cursor(row_factory=psycopg.rows.dict_row)
 
 
-def insert_example_record(cur):
-    print("\n\nInserting an example record...", end="")
-    cur.execute("DELETE FROM examples")
+def insert_customer_record(cur):
+    print("\n\nInserting an customer record...", end="")
+    cur.execute("DELETE FROM customers")
     cur.execute("SELECT cs_refresh_encrypt_config()")
 
-    example_data = {
-        "encrypted_int": EqlInt(-51, "examples", "encrypted_int"),
-        "encrypted_boolean": EqlBool(False, "examples", "encrypted_boolean"),
-        "encrypted_date": EqlDate(datetime.now().date(), "examples", "encrypted_date"),
-        "encrypted_float": EqlFloat(-0.5, "examples", "encrypted_float"),
-        "encrypted_utf8_str": EqlText("hello, world", "examples", "encrypted_utf8_str"),
-        "encrypted_jsonb": EqlJsonb(
+    customer_data = {
+        "age": EqlInt(51, "customers", "age"),
+        "is_citizen": EqlBool(False, "customers", "is_citizen"),
+        "start_date": EqlDate(datetime.now().date(), "customers", "start_date"),
+        "weight": EqlFloat(58.5, "customers", "weight"),
+        "name": EqlText(":Some User", "customers", "name"),
+        "extra_info": EqlJsonb(
             {"num": 1, "category": "a", "top": {"nested": ["a", "b", "c"]}},
-            "examples",
-            "encrypted_jsonb",
+            "customers",
+            "extra_info",
         ),
     }
 
     insert_query = """
-    INSERT INTO examples (encrypted_int, encrypted_boolean, encrypted_date, encrypted_float, encrypted_utf8_str, encrypted_jsonb)
+    INSERT INTO customers (age, is_citizen, start_date, weight, name, extra_info)
     VALUES (%s, %s, %s, %s, %s, %s)
     """
     cur.execute(
-        insert_query, tuple(field.to_db_format() for field in example_data.values())
+        insert_query, tuple(field.to_db_format() for field in customer_data.values())
     )
     print("done\n")
 
@@ -53,11 +53,11 @@ def print_instructions():
         """
 In another terminal window, you can check the data on CipherStash Proxy with (assuming you are using default setting):
 
-  $ psql -h localhost -p 6432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example
+  $ psql -h localhost -p 6432 -U postgres -x -c "select * from customers limit 1;" eqlpy_example
 
 Also you can check what is really stored on PostgreSQL with:
 
-  $ psql -h localhost -p 5432 -U postgres -x -c "select * from examples limit 1;" eqlpy_example
+  $ psql -h localhost -p 5432 -U postgres -x -c "select * from customers limit 1;" eqlpy_example
 
 """
     )
@@ -65,15 +65,15 @@ Also you can check what is really stored on PostgreSQL with:
 
 def display_eql_row(cur):
     column_function_map = {
-        "encrypted_int": EqlInt.from_parsed_json,
-        "encrypted_boolean": EqlBool.from_parsed_json,
-        "encrypted_date": EqlDate.from_parsed_json,
-        "encrypted_float": EqlFloat.from_parsed_json,
-        "encrypted_utf8_str": EqlText.from_parsed_json,
-        "encrypted_jsonb": EqlJsonb.from_parsed_json,
+        "age": EqlInt.from_parsed_json,
+        "is_citizen": EqlBool.from_parsed_json,
+        "start_date": EqlDate.from_parsed_json,
+        "weight": EqlFloat.from_parsed_json,
+        "name": EqlText.from_parsed_json,
+        "extra_info": EqlJsonb.from_parsed_json,
     }
 
-    cur.execute("SELECT * FROM examples")
+    cur.execute("SELECT * FROM customers")
     found = cur.fetchall()
 
     pp = pprint.PrettyPrinter(indent=4)
@@ -82,30 +82,26 @@ def display_eql_row(cur):
         pp.pprint(EqlRow(column_function_map, f).row)
 
 
-def query_example(cur):
-    print(
-        "\nQuery example for partial Match of 'hello' in examples.encrypted_utf8_str:"
-    )
+def query_customer(cur):
+    print("\nQuery customer for partial Match of 'hello' in customers.name:")
     cur.execute(
-        "SELECT * FROM examples WHERE cs_match_v1(encrypted_utf8_str) @> cs_match_v1(%s)",
-        (EqlText("hello", "examples", "encrypted_utf8_str").to_db_format("match"),),
+        "SELECT * FROM customers WHERE cs_match_v1(name) @> cs_match_v1(%s)",
+        (EqlText("some", "customers", "name").to_db_format("match"),),
     )
     found = cur.fetchall()
     for f in found:
         print()
-        print(
-            f"  Text inside the found record: {EqlText.from_parsed_json(f['encrypted_utf8_str'])}"
-        )
+        print(f"  Text inside the found record: {EqlText.from_parsed_json(f['name'])}")
         print()
         print(
-            f"  Jsonb inside the found record: {EqlJsonb.from_parsed_json(f['encrypted_jsonb'])}"
+            f"  Jsonb inside the found record: {EqlJsonb.from_parsed_json(f['extra_info'])}"
         )
 
 
 def main():
     conn, cur = connect_to_db()
 
-    insert_example_record(cur)
+    insert_customer_record(cur)
     conn.commit()
 
     print_instructions()
@@ -117,9 +113,9 @@ def main():
     input("Press Enter to continue.")
     print()
 
-    query_example(cur)
+    query_customer(cur)
 
-    print("\n=== End of examples ===\n")
+    print("\n=== End of customers ===\n")
 
     cur.close()
     conn.close()

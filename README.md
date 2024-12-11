@@ -122,7 +122,7 @@ EQL doesn't define the `LIKE` operator, but instead uses an operator called `mat
 which works in a similar way but over encrypted values.
 
 ```py
-found = Customer.objects.get(name__contains="caro")
+found = Customer.objects.get(name__match="caro")
 ```
 
 TODO: Link to a reference section

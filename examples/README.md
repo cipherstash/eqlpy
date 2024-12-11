@@ -42,7 +42,6 @@ Please note currently pscyopg2 is required with the sqlalchemy example
 * Start PostgreSQL and CipherStash Proxy using `docker compose`: `docker compose up -d`
 * Run the following commands to install eql, create domain types, and example table:
     * `$ curl -L https://github.com/cipherstash/encrypt-query-language/releases/download/eql-0.4.3/cipherstash-encrypt.sql | psql -h localhost -p 5432 -U postgres eqlpy_example`
-    * `$ psql -h localhost -p 5432 -U postgres eqlpy_example < application_types.sql`
     * `$ psql -h localhost -p 5432 -U postgres eqlpy_example < create_examples_table.sql`
 
 ## Execution

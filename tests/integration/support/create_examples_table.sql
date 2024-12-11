@@ -1,11 +1,11 @@
 create table customers (
   id serial primary key,
-  is_citizen customers__is_citizen,
-  start_date customers__start_date,
-  weight customers__weight,
-  age customers__age,
-  name customers__name,
-  extra_info customers__extra_info,
+  is_citizen cs_encrypted_v1,
+  start_date cs_encrypted_v1,
+  weight cs_encrypted_v1,
+  age cs_encrypted_v1,
+  name cs_encrypted_v1,
+  extra_info cs_encrypted_v1,
   visit_count integer
 );
 

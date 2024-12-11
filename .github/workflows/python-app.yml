@@ -49,8 +49,6 @@ jobs:
            sudo apt-get install -y postgresql-client
       - name: Install EQL
         run: curl -L https://github.com/cipherstash/encrypt-query-language/releases/download/eql-0.4.3/cipherstash-encrypt.sql | psql -h localhost -p 5432 -U postgres eqlpy_test
-      - name: Create appliaction types
-        run: psql -h localhost -p 5432 -U postgres eqlpy_test < tests/integration/support/application_types.sql
       - name: Create test table
         run: psql -h localhost -p 5432 -U postgres eqlpy_test < tests/integration/support/create_examples_table.sql
       - name: Print dataset ID

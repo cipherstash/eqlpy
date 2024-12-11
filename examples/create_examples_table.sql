@@ -1,11 +1,11 @@
 create table examples (
   id serial primary key,
-  encrypted_boolean examples__encrypted_boolean,
-  encrypted_date examples__encrypted_date,
-  encrypted_float examples__encrypted_float,
-  encrypted_int examples__encrypted_int,
-  encrypted_utf8_str examples__encrypted_utf8_str,
-  encrypted_jsonb examples__encrypted_jsonb
+  encrypted_boolean cs_encrypted_v1,
+  encrypted_date cs_encrypted_v1,
+  encrypted_float cs_encrypted_v1,
+  encrypted_int cs_encrypted_v1,
+  encrypted_utf8_str cs_encrypted_v1,
+  encrypted_jsonb cs_encrypted_v1
 );
 
 -- Add CipherStash indexes to Encrypt config

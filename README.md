@@ -37,7 +37,7 @@ Currently, eqlpy supports either of the following database packages:
 
 * psycopg 3 or psycopg 2
 * sqlalchemy + psycopg 2
-* Django + psycopg 2 (TODO: Yuji is this correct?)
+* Django + psycopg 2
 
 For code examples of storing and querying encrypted data with [CipherStash Proxy](https://cipherstash.com/docs/getting-started/cipherstash-proxy) using those packages, refer to [examples directory](examples/) and [integration tests](tests/integration/).
 

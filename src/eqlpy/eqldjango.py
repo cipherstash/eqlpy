@@ -105,7 +105,6 @@ class EncryptedUniqueEquals(Lookup):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
         # TODO: could this be done in get_prep_value?
-        # this could also be 'ore'?
         rhs_params = [dict(e, q="unique") for e in rhs_params]
         params = map(json.dumps, (lhs_params + rhs_params))
         return "cs_unique_v1(%s) = cs_unique_v1(%s)" % (lhs, rhs), params
@@ -114,8 +113,26 @@ class EncryptedUniqueEquals(Lookup):
 EncryptedText.register_lookup(EncryptedUniqueEquals)
 
 
-class EncryptedTextContains(Lookup):
-    lookup_name = "contains"
+class EncryptedOreEquals(Lookup):
+    lookup_name = "eq"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        rhs_params = [dict(e, q="ore") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_ore_64_8_v1(%s) = cs_ore_64_8_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedBoolean.register_lookup(EncryptedOreEquals)
+EncryptedDate.register_lookup(EncryptedOreEquals)
+EncryptedInt.register_lookup(EncryptedOreEquals)
+EncryptedFloat.register_lookup(EncryptedOreEquals)
+
+
+class EncryptedTextMatch(Lookup):
+    lookup_name = "match"
 
     def as_sql(self, compiler, connection):
         lhs, lhs_params = self.process_lhs(compiler, connection)
@@ -126,7 +143,7 @@ class EncryptedTextContains(Lookup):
         return "cs_match_v1(%s) @> cs_match_v1(%s)" % (lhs, rhs), params
 
 
-EncryptedText.register_lookup(EncryptedTextContains)
+EncryptedText.register_lookup(EncryptedTextMatch)
 
 
 class EncryptedOreLt(Lookup):
@@ -143,6 +160,7 @@ class EncryptedOreLt(Lookup):
 
 EncryptedFloat.register_lookup(EncryptedOreLt)
 EncryptedInt.register_lookup(EncryptedOreLt)
+EncryptedDate.register_lookup(EncryptedOreLt)
 
 
 class EncryptedOreGt(Lookup):
@@ -159,6 +177,7 @@ class EncryptedOreGt(Lookup):
 
 EncryptedFloat.register_lookup(EncryptedOreGt)
 EncryptedInt.register_lookup(EncryptedOreGt)
+EncryptedDate.register_lookup(EncryptedOreGt)
 
 
 class EncryptedJsonContains(Lookup):
@@ -244,6 +263,7 @@ def create_operator(operator_name, template):
 
 
 CsContains = create_operator("CsContains", "%(left)s @> %(right)s")
+CsMatch = create_operator("CsMatch", "%(left)s @> %(right)s")
 CsContainedBy = create_operator("CsContainedBy", "%(left)s <@ %(right)s")
 CsEquals = create_operator("CsEquals", "%(left)s = %(right)s")
 CsGt = create_operator("CsGt", "%(left)s > %(right)s")

@@ -140,7 +140,7 @@ class TestCustomerDjangoModel(unittest.TestCase):
 
     def test_string_partial_match(self):
         term = EqlText("ali", "customers", "name").to_db_format("match")
-        query = Q(CsContains(CsMatchV1(F("name")), CsMatchV1(Value(term))))
+        query = Q(CsMatch(CsMatchV1(F("name")), CsMatchV1(Value(term))))
         result = Customer.objects.filter(query)
         self.assertEqual(1, result.count())
         self.assertEqual("Alice Developer", result[0].name)
@@ -338,8 +338,8 @@ class TestModelWithCustomLookup(unittest.TestCase):
         Customer.objects.all().delete()
         self.customer1, self.customer2, self.customer3 = create_customer_records()
 
-    def test_text_contains_with_float_lt(self):
-        found = Customer.objects.get(name__contains="Customer", weight__lt=80.0)
+    def test_text_matches_with_float_lt(self):
+        found = Customer.objects.get(name__match="Customer", weight__lt=80.0)
         self.assertEqual(found.weight, 55.0)
 
     def test_plaintext_lt_with_float_lt(self):
@@ -351,12 +351,16 @@ class TestModelWithCustomLookup(unittest.TestCase):
         self.assertEqual(found.name, "Alice Developer")
 
     def test_text_partial_match(self):
-        found = Customer.objects.get(name__contains="caro")
+        found = Customer.objects.get(name__match="caro")
         self.assertEqual(found.name, "Carol Customer")
 
     def test_float_ore_lt(self):
         found = Customer.objects.get(weight__lt=53.0)
         self.assertEqual(found.weight, 51.1)
+
+    def test_float_ore_eq(self):
+        found = Customer.objects.get(weight__eq=82.1)
+        self.assertEqual(found.weight, 82.1)
 
     def test_float_ore_gt(self):
         found = Customer.objects.get(weight__gt=80.0)
@@ -366,6 +370,10 @@ class TestModelWithCustomLookup(unittest.TestCase):
         found = Customer.objects.get(age__lt=30)
         self.assertEqual(found.age, 29)
 
+    def test_int_ore_lt(self):
+        found = Customer.objects.get(age__eq=30)
+        self.assertEqual(found.age, 30)
+
     def test_int_ore_gt(self):
         found = Customer.objects.get(age__gt=30)
         self.assertEqual(found.age, 31)
@@ -373,3 +381,18 @@ class TestModelWithCustomLookup(unittest.TestCase):
     def test_jsonb_contains(self):
         found = Customer.objects.get(extra_info__contains={"key": []})
         self.assertEqual(found.name, "Alice Developer")
+
+    def test_date_ore_lt(self):
+        found = Customer.objects.filter(start_date__lt=date(2024, 1, 2)).all()
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].start_date, date(2024, 1, 1))
+
+    def test_date_ore_eq(self):
+        found = Customer.objects.filter(start_date__eq=date(2024, 1, 2)).all()
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].start_date, date(2024, 1, 2))
+
+    def test_bool_unique(self):
+        found = Customer.objects.filter(is_citizen__eq=True).all()
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].name, "Alice Developer")

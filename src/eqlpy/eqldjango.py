@@ -3,6 +3,10 @@ from django.db import models
 from datetime import datetime
 from django.db.models import Func, JSONField, Aggregate
 from django.db.models.fields import BooleanField
+from django.db.models import Q, F, Value
+from django.db.models.lookups import Lookup
+from eqlpy.eql_types import EqlFloat, EqlText, EqlJsonb
+from functools import reduce
 
 
 class EncryptedValue(models.JSONField):
@@ -94,8 +98,105 @@ class EncryptedJsonb(EncryptedValue):
         return json.loads(value)
 
 
+class EncryptedUniqueEquals(Lookup):
+    lookup_name = "eq"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        rhs_params = [dict(e, q="unique") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_unique_v1(%s) = cs_unique_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedText.register_lookup(EncryptedUniqueEquals)
+
+
+class EncryptedOreEquals(Lookup):
+    lookup_name = "eq"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        rhs_params = [dict(e, q="ore") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_ore_64_8_v1(%s) = cs_ore_64_8_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedBoolean.register_lookup(EncryptedOreEquals)
+EncryptedDate.register_lookup(EncryptedOreEquals)
+EncryptedInt.register_lookup(EncryptedOreEquals)
+EncryptedFloat.register_lookup(EncryptedOreEquals)
+
+
+class EncryptedTextMatch(Lookup):
+    lookup_name = "match"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        rhs_params = [dict(e, q="match") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_match_v1(%s) @> cs_match_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedText.register_lookup(EncryptedTextMatch)
+
+
+class EncryptedOreLt(Lookup):
+    lookup_name = "lt"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        rhs_params = [dict(e, q="ore") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_ore_64_8_v1(%s) < cs_ore_64_8_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedFloat.register_lookup(EncryptedOreLt)
+EncryptedInt.register_lookup(EncryptedOreLt)
+EncryptedDate.register_lookup(EncryptedOreLt)
+
+
+class EncryptedOreGt(Lookup):
+    lookup_name = "gt"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        rhs_params = [dict(e, q="ore") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_ore_64_8_v1(%s) > cs_ore_64_8_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedFloat.register_lookup(EncryptedOreGt)
+EncryptedInt.register_lookup(EncryptedOreGt)
+EncryptedDate.register_lookup(EncryptedOreGt)
+
+
+class EncryptedJsonContains(Lookup):
+    lookup_name = "contains"
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        # TODO: could this be done in get_prep_value?
+        rhs_params = [dict(e, q="ste_vec") for e in rhs_params]
+        params = map(json.dumps, (lhs_params + rhs_params))
+        return "cs_ste_vec_v1(%s) @> cs_ste_vec_v1(%s)" % (lhs, rhs), params
+
+
+EncryptedJsonb.register_lookup(EncryptedJsonContains)
+
 # EQL functions
 # These classes are data structures that represent EQL functions
+# Needed for complex EQL queries
 
 
 class CsMatchV1(Func):
@@ -162,6 +263,7 @@ def create_operator(operator_name, template):
 
 
 CsContains = create_operator("CsContains", "%(left)s @> %(right)s")
+CsMatch = create_operator("CsMatch", "%(left)s @> %(right)s")
 CsContainedBy = create_operator("CsContainedBy", "%(left)s <@ %(right)s")
 CsEquals = create_operator("CsEquals", "%(left)s = %(right)s")
 CsGt = create_operator("CsGt", "%(left)s > %(right)s")

@@ -118,8 +118,7 @@ Customer.objects.get(name__eq="Alice Developer")
 ```
 
 Text search works slightly differently.
-EQL doesn't define the `LIKE` operator, but instead uses an operator called `match`
-which works in a similar way but over encrypted values.
+EQL doesn't define the `LIKE` operator, but instead uses an operator called `match` which works in a similar way but over encrypted values.
 
 ```py
 found = Customer.objects.get(name__match="caro")

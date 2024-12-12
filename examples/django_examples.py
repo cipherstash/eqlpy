@@ -54,19 +54,18 @@ class Customer(models.Model):
 
     def __str__(self):
         return (
-            f"Customer(id={self.id}, int={self.age}, bool={self.is_citizen}, "
-            f"date={self.start_date}, float={self.weight}, "
-            f"str='{self.name}', jsonb={self.extra_info})"
+            f"Customer(id={self.id}, age={self.age}, is_citizen={self.is_citizen}, "
+            f"start_date={self.start_date}, weight={self.weight}, "
+            f"name='{self.name}', extra_info={self.extra_info})"
         )
 
 
 def greet():
-    print("Welcome to CipherStash eqlpy examples!")
+    print("\n\nWelcome to CipherStash eqldjango example!")
     print()
     print(
-        "These examples demonstrate basic usage of CipherStash's encryption with eqlpy and Django."
+        "This example script demonstrates basic usage of CipherStash's encryption with eqlpy and Django."
     )
-    print()
 
 
 def print_prerequisites():
@@ -74,6 +73,7 @@ def print_prerequisites():
     print("  * PostgreSQL container and Proxy container running")
     print("  * Django and psycopg2 installed")
     print()
+    print("If you do not, please refer to README.md in this directory.")
 
 
 def insert_example_records():
@@ -128,7 +128,7 @@ def insert_example_records():
 def print_psql_instructions():
     print("Now you can see the encrypted data in CipherStash Proxy and PostgreSQL.")
     print()
-    print("For CipherStash: In another terminal window, run:\n")
+    print("For CipherStash Proxy: In another terminal window, run:\n")
     print(
         '    $ psql -h localhost -p 6432 -U postgres -x -c "select * from customers limit 1;" eqlpy_example'
     )
@@ -137,9 +137,9 @@ def print_psql_instructions():
         f"      (if you get prompted for password, use '{TestSettings.pg_password}' without the surrounding quotes)\n"
     )
     prompt_enter()
-    print("To check what is actually stored on PostgreSQL, run:\n")
+    print("To see what is actually stored on PostgreSQL, run:\n")
     print(
-        '   $ psql -h localhost -p 5432 -U postgres -x -c "select * from customers limit 1;" eqlpy_example'
+        '    $ psql -h localhost -p 5432 -U postgres -x -c "select * from customers limit 1;" eqlpy_example'
     )
 
 
@@ -183,9 +183,8 @@ def query_example_json_contains():
 
 
 def print_end_message():
-    print(
-        "That's it! Thank you for running this! Please look at the example code itself to see how records are created and queries are run."
-    )
+    print("That's it! Thank you for following along!")
+    print(f"Please look at the example code ({os.path.basename(__file__)}) itself to see how records are created and queries are run.")
 
 
 step = 0
@@ -227,7 +226,7 @@ def main():
     prompt_enter()
 
     print_end_message()
-    print("\n=== End of examples ===\n")
+    print("\n=== End of example script ===\n")
 
 
 if __name__ == "__main__":

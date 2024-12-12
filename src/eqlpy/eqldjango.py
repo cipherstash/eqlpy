@@ -11,14 +11,14 @@ from functools import reduce
 
 class EncryptedValue(models.JSONField):
     def __init__(self, *args, **kwargs):
-        self.table = kwargs.pop("table")
-        self.column = kwargs.pop("column")
+        self.eql_table = kwargs.pop("eql_table", None)
+        self.eql_column = kwargs.pop("eql_column", None)
         super().__init__(*args, **kwargs)
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
-        kwargs["table"] = self.table
-        kwargs["column"] = self.column
+        kwargs["eql_table"] = self.eql_table
+        kwargs["eql_column"] = self.eql_column
         return name, path, args, kwargs
 
     def get_prep_value(self, value):
@@ -26,7 +26,7 @@ class EncryptedValue(models.JSONField):
             dict = {
                 "k": "pt",
                 "p": self._to_db_format(value),
-                "i": {"t": self.table, "c": self.column},
+                "i": {"t": self.eql_table, "c": self.eql_column},
                 "v": 1,
                 "q": None,
             }
@@ -49,6 +49,14 @@ class EncryptedValue(models.JSONField):
 
     def db_type(self, connection):
         return "cs_encrypted_v1"
+
+    def contribute_to_class(self, cls, name, **kwargs):
+        super().contribute_to_class(cls, name, **kwargs)
+        # if table or column are not set, use cls and name
+        if (not hasattr(self, "eql_table")) or (getattr(self, "eql_table") is None):
+            self.eql_table = cls._meta.db_table
+        if (not hasattr(self, "eql_column")) or (getattr(self, "eql_column") is None):
+            self.eql_column = name
 
 
 class EncryptedInt(EncryptedValue):

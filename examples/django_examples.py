@@ -40,12 +40,14 @@ django.setup()
 
 
 class Customer(models.Model):
-    age = EncryptedInt(table="customers", column="age", null=True)
-    is_citizen = EncryptedBoolean(table="customers", column="is_citizen", null=True)
-    start_date = EncryptedDate(table="customers", column="start_date", null=True)
-    weight = EncryptedFloat(table="customers", column="weight", null=True)
-    name = EncryptedText(table="customers", column="name", null=True)
-    extra_info = EncryptedJsonb(table="customers", column="extra_info", null=True)
+    age = EncryptedInt(null=True)
+    is_citizen = EncryptedBoolean(null=True)
+    start_date = EncryptedDate(null=True)
+    weight = EncryptedFloat(null=True)
+    name = EncryptedText(null=True)
+    extra_info = EncryptedJsonb(null=True)
+
+    # non-sensitive fields (not encrypted)
     visit_count = IntegerField()
 
     class Meta:
@@ -56,7 +58,8 @@ class Customer(models.Model):
         return (
             f"Customer(id={self.id}, age={self.age}, is_citizen={self.is_citizen}, "
             f"start_date={self.start_date}, weight={self.weight}, "
-            f"name='{self.name}', extra_info={self.extra_info})"
+            f"name='{self.name}', extra_info={self.extra_info}, "
+            f"visit_count={self.visit_count})"
         )
 
 
@@ -184,7 +187,9 @@ def query_example_json_contains():
 
 def print_end_message():
     print("That's it! Thank you for following along!")
-    print(f"Please look at the example code ({os.path.basename(__file__)}) itself to see how records are created and queries are run.")
+    print(
+        f"Please look at the example code ({os.path.basename(__file__)}) itself to see how records are created and queries are run."
+    )
 
 
 step = 0

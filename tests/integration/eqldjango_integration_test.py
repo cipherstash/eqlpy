@@ -320,13 +320,14 @@ class TestCustomerDjangoModel(unittest.TestCase):
 
 
 class Customer(models.Model):
-    # investigate if we can remove table and column
-    age = EncryptedInt(table="customers", column="age", null=True)
-    is_citizen = EncryptedBoolean(table="customers", column="is_citizen", null=True)
-    start_date = EncryptedDate(table="customers", column="start_date", null=True)
-    weight = EncryptedFloat(table="customers", column="weight", null=True)
-    name = EncryptedText(table="customers", column="name", null=True)
-    extra_info = EncryptedJsonb(table="customers", column="extra_info", null=True)
+    age = EncryptedInt(null=True)
+    is_citizen = EncryptedBoolean(null=True)
+    start_date = EncryptedDate(null=True)
+    weight = EncryptedFloat(null=True)
+    name = EncryptedText(null=True)
+    extra_info = EncryptedJsonb(null=True)
+
+    # non-sensitive fields (not encrypted)
     visit_count = IntegerField()
 
     class Meta:

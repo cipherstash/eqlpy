@@ -13,7 +13,6 @@ class EncryptedValue(models.JSONField):
     def __init__(self, *args, **kwargs):
         self.eql_table = kwargs.pop("eql_table", None)
         self.eql_column = kwargs.pop("eql_column", None)
-        print(f"{self.__class__.__name__} constructor called")
         super().__init__(*args, **kwargs)
 
     def deconstruct(self):

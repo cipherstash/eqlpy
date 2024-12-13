@@ -298,7 +298,7 @@ def main():
     query_example_date_ore_with_name_match()
     prompt_enter()
 
-    query_example_visit_count()
+    query_example_visit_count_exact()
     prompt_enter()
 
     query_example_visit_count_with_date_ore()

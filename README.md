@@ -74,7 +74,7 @@ from django.db import models
 from eqlpy.eqldjango import *
 
 class Customer(models.Model):
-    name = EncryptedText(table="customers", column="name")
+    name = EncryptedText()
 ```
 
 The above customer model would create a database table like this:

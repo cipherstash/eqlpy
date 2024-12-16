@@ -159,53 +159,60 @@ def wait_and_show_record(record):
 
 
 def query_exact_string():
+    query_code = 'Customer.objects.get(name__eq="Carol Customer")'
     print(
-        '\nQuery example Customer.objects.get(name__eq="Carol Customer"), which should find customer with the exact name "Carol Customer":'
+        f'\nQuery example {query_code}, which should find customer with the exact name "Carol Customer":'
     )
-    record = Customer.objects.get(name__eq="Carol Customer")
+    record = eval(query_code)
 
     wait_and_show_record(record)
 
 
 def query_example_match_string():
+    query_code = 'Customer.objects.get(name__match="ali")'
     print(
-        '\nQuery example Customer.objects.get(name__match="ali"), which should find customer with the matching name "Alice Developer":'
+        f'\nQuery example {query_code}, which should find customer with the matching name "Alice Developer":'
     )
-    record = Customer.objects.get(name__match="ali")
+    record = eval(query_code)
 
     wait_and_show_record(record)
 
 
 def query_example_ore():
+    query_code = 'Customer.objects.get(weight__gt=73.0)'
     print(
-        "\nQuery example Customer.objects.get(weight__gt=73.0), which should find the customer with the weight 82.1:"
+        f"\nQuery example {query_code}, which should find the customer with the weight 82.1:"
     )
-    record = Customer.objects.get(weight__gt=73.0)
+    record = eval(query_code)
 
     wait_and_show_record(record)
 
 
 def query_example_json_contains():
+    query_code = 'Customer.objects.get(extra_info__contains={"key": []})'
     print(
-        '\nQuery example Customer.objects.get(extra_info__contains={"key": []}), which should find the customer with the extra_info {"key": ["value"], "num": 1, "cat": "a"}:'
+        f'\nQuery example {query_code}, which should find the customer with the extra_info '
+         '{"key": ["value"], "num": 1, "cat": "a"}:'
     )
-    record = Customer.objects.get(extra_info__contains={"key": []})
+    record = eval(query_code)
 
     wait_and_show_record(record)
 
 
 def query_example_exact_date():
+    query_code = 'Customer.objects.get(start_date__eq=date(2024, 1, 2))'
     print(
-        "\nQuery example Customer.objects.get(start_date_eq=date(2024, 1, 2)), which should find the customer with the start date 2024-01-02:"
+        f"\nQuery example {query_code}, which should find the customer with the start date 2024-01-02:"
     )
-    record = Customer.objects.get(weight__gt=73.0)
+    record = eval(query_code)
 
     wait_and_show_record(record)
 
 
 def query_example_date_ore():
+    query_code = 'Customer.objects.get(start_date__gt=date(2024, 1, 2))'
     print(
-        "\nQuery example Customer.objects.get(start_date__gt=date(2024, 1, 2)), which should find the customer with the start date 2024-01-03:"
+        f"\nQuery example {query_code}, which should find the customer with the start date 2024-01-03:"
     )
     record = Customer.objects.get(start_date__gt=date(2024, 1, 2))
 
@@ -213,30 +220,30 @@ def query_example_date_ore():
 
 
 def query_example_date_ore_with_name_match():
+    query_code = 'Customer.objects.get(start_date__lt=date(2024, 1, 3), name__match="Customer")'
     print(
-        '\nQuery example Customer.objects.get(start_date__lt=date(2024, 1, 3), name__match="Customer"), which should find the customer with the matching name and start date:'
+        f'\nQuery example {query_code}, which should find the customer with the matching name and start date:'
     )
-    record = Customer.objects.get(
-        start_date__lt=date(2024, 1, 3), name__match="Customer"
-    )
-
+    record = eval(query_code)
     wait_and_show_record(record)
 
 
 def query_example_visit_count_exact():
+    query_code = "Customer.objects.get(visit_count=2)"
     print(
-        "\nQuery example Customer.objects.get(visit_count=2), which uses a plain text column only:"
+        f"\nQuery example {query_code}, which uses a plain text column only:"
     )
-    record = Customer.objects.get(visit_count=2)
+    record = eval(query_code)
 
     wait_and_show_record(record)
 
 
 def query_example_visit_count_with_date_ore():
+    query_code = "Customer.objects.get(visit_count__gt=0, start_date__lt=date(2024, 1, 3))"
     print(
-        "\nQuery example Customer.objects.get(visit_count__gt=0, start_date__lt=date(2024, 1, 3)), which uses both a plain text column and an encrypted column:"
+        f"\nQuery example {query_code}, which uses both a plain text column and an encrypted column:"
     )
-    record = Customer.objects.get(visit_count__gt=0, start_date__lt=date(2024, 1, 3))
+    record = eval(query_code)
 
     wait_and_show_record(record)
 

@@ -74,6 +74,10 @@ def greet():
 def print_prerequisites():
     print("Make sure you have the following prerequisites:")
     print("  * PostgreSQL container and Proxy container running")
+    print("  * CihperStash EQL installed on PostgreSQL")
+    print(
+        "  * Example table(s) created with create_tables.sql script in this directory"
+    )
     print("  * Django and psycopg2 installed")
     print()
     print("If you do not, please refer to README.md in this directory.")
@@ -146,43 +150,102 @@ def print_psql_instructions():
     )
 
 
-def query_example_match():
-    print(
-        '\nQuery example Customer.objects.get(name__match="ali"), which should find customer1 with "Alice Developer":'
-    )
-    record = Customer.objects.get(name__match="ali")
-
+def wait_and_show_record(record):
     print()
     input("Press Enter to continue.")
     print()
     print(f"  Record found: {record}")
     print()
+
+
+def query_exact_string():
+    query_code = 'Customer.objects.get(name__eq="Carol Customer")'
+    print(
+        f'\nQuery example {query_code}, which should find customer with the exact name "Carol Customer":'
+    )
+    record = eval(query_code)
+
+    wait_and_show_record(record)
+
+
+def query_example_match_string():
+    query_code = 'Customer.objects.get(name__match="ali")'
+    print(
+        f'\nQuery example {query_code}, which should find customer with the matching name "Alice Developer":'
+    )
+    record = eval(query_code)
+
+    wait_and_show_record(record)
 
 
 def query_example_ore():
+    query_code = 'Customer.objects.get(weight__gt=73.0)'
     print(
-        "\nQuery example Customer.objects.get(weight__gt=73.0), which should find customer2 with 82.1:"
+        f"\nQuery example {query_code}, which should find the customer with the weight 82.1:"
     )
-    record = Customer.objects.get(weight__gt=73.0)
+    record = eval(query_code)
 
-    print()
-    input("Press Enter to continue.")
-    print()
-    print(f"  Record found: {record}")
-    print()
+    wait_and_show_record(record)
 
 
 def query_example_json_contains():
+    query_code = 'Customer.objects.get(extra_info__contains={"key": []})'
     print(
-        '\nQuery example Customer.objects.get(extra_info__contains={"key": []}), which should find customer1 with {"key": ["value"], "num": 1, "cat": "a"}:'
+        f'\nQuery example {query_code}, which should find the customer with the extra_info '
+         '{"key": ["value"], "num": 1, "cat": "a"}:'
     )
-    record = Customer.objects.get(extra_info__contains={"key": []})
+    record = eval(query_code)
 
-    print()
-    input("Press Enter to continue.")
-    print()
-    print(f"  Record found: {record}")
-    print()
+    wait_and_show_record(record)
+
+
+def query_example_exact_date():
+    query_code = 'Customer.objects.get(start_date__eq=date(2024, 1, 2))'
+    print(
+        f"\nQuery example {query_code}, which should find the customer with the start date 2024-01-02:"
+    )
+    record = eval(query_code)
+
+    wait_and_show_record(record)
+
+
+def query_example_date_ore():
+    query_code = 'Customer.objects.get(start_date__gt=date(2024, 1, 2))'
+    print(
+        f"\nQuery example {query_code}, which should find the customer with the start date 2024-01-03:"
+    )
+    record = Customer.objects.get(start_date__gt=date(2024, 1, 2))
+
+    wait_and_show_record(record)
+
+
+def query_example_date_ore_with_name_match():
+    query_code = 'Customer.objects.get(start_date__lt=date(2024, 1, 3), name__match="Customer")'
+    print(
+        f'\nQuery example {query_code}, which should find the customer with the matching name and start date:'
+    )
+    record = eval(query_code)
+    wait_and_show_record(record)
+
+
+def query_example_visit_count_exact():
+    query_code = "Customer.objects.get(visit_count=2)"
+    print(
+        f"\nQuery example {query_code}, which uses a plain text column only:"
+    )
+    record = eval(query_code)
+
+    wait_and_show_record(record)
+
+
+def query_example_visit_count_with_date_ore():
+    query_code = "Customer.objects.get(visit_count__gt=0, start_date__lt=date(2024, 1, 3))"
+    print(
+        f"\nQuery example {query_code}, which uses both a plain text column and an encrypted column:"
+    )
+    record = eval(query_code)
+
+    wait_and_show_record(record)
 
 
 def print_end_message():
@@ -221,13 +284,31 @@ def main():
     print_psql_instructions()
     prompt_enter()
 
-    query_example_match()
+    query_exact_string()
+    prompt_enter()
+
+    query_example_match_string()
     prompt_enter()
 
     query_example_ore()
     prompt_enter()
 
+    query_example_exact_date()
+    prompt_enter()
+
+    query_example_date_ore()
+    prompt_enter()
+
     query_example_json_contains()
+    prompt_enter()
+
+    query_example_date_ore_with_name_match()
+    prompt_enter()
+
+    query_example_visit_count_exact()
+    prompt_enter()
+
+    query_example_visit_count_with_date_ore()
     prompt_enter()
 
     print_end_message()

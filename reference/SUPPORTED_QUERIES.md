@@ -20,16 +20,16 @@ The `eqlpy` library enables the following types of queries on encrypted data:
 - Comparison where a value is greater than, less than, or equal to another, like `X > Y`
   - Ordering is supported where comparison is supported, like `ORDER BY C`
 - JSONB containment where a document is contained in another, like `X @> Y`
-- JSONB value extraction where a value is extracted from a document with a path, like `$.X.Y`
+- JSONB field extraction where a value is extracted from a document with a path, like `$.X.Y`
+- JSONB field comparison where values from specific fields are compared, like `$.X > Y`
+- JSONB grouping where values are grouped by specific JSONB fields, like `GROUP BY $.X`
 
 ## Required index types
 
 - Equality queries require either the `unique` or `ore` index type
 - Partial matching of strings requires the `match` index type
 - Comparison requires the `ore` index type
-- JSONB containment requires the `ste_vec` index type
-
-TODO: add details for ejson_path
+- JSONB queries require the `ste_vec` index type
 
 ## Supported query interfaces
 

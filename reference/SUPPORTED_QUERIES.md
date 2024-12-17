@@ -43,21 +43,21 @@ Customer.objects.get(name__match="carol")
 
 The following table shows custom field types provided by `eqldjango`.
 
-| EncryptedValue subclass | Supported lookups                | Supported index type |
-|-------------------------|----------------------------------|----------------------|
-| EncryptedText           | eq (EncryptedUniqueEquals)       | "unique"             |
-|                         | match (EncryptedTextMatch)       | "match"              |
-| EncryptedBoolean        | eq (EncryptedOreEquals)          | "ore"                |
-| EncryptedDate           | eq (EncryptedOreEquals)          | "ore"                |
-|                         | lt (EncryptedOreLt)              | "ore"                |
-|                         | gt (EncryptedOreGt)              | "ore"                |
-| EncryptedInt            | eq (EncryptedOreEquals)          | "ore"                |
-|                         | lt (EncryptedOreLt)              | "ore"                |
-|                         | gt (EncryptedOreGt)              | "ore"                |
-| EncryptedFloat          | eq (EncryptedOreEquals)          | "ore"                |
-|                         | lt (EncryptedOreLt)              | "ore"                |
-|                         | gt (EncryptedOreGt)              | "ore"                |
-| EncryptedJsonb          | contains (EncryptedJsonContains) | "ste_vec"            |
+| EncryptedValue subclass | Supported lookups                    | Supported index type |
+|-------------------------|--------------------------------------|----------------------|
+| `EncryptedText`         | `eq` (`EncryptedUniqueEquals`)       | "unique"             |
+|                         | `match` (`EncryptedTextMatch`)       | "match"              |
+| `EncryptedBoolean`      | `eq` (`EncryptedOreEquals`)          | "ore"                |
+| `EncryptedDate`         | `eq` (`EncryptedOreEquals`)          | "ore"                |
+|                         | `lt` (`EncryptedOreLt`)              | "ore"                |
+|                         | `gt` (`EncryptedOreGt`)              | "ore"                |
+| `EncryptedInt`          | `eq` (`EncryptedOreEquals`)          | "ore"                |
+|                         | `lt` (`EncryptedOreLt`)              | "ore"                |
+|                         | `gt` (`EncryptedOreGt`)              | "ore"                |
+| `EncryptedFloat`        | `eq` (`EncryptedOreEquals`)          | "ore"                |
+|                         | `lt` (`EncryptedOreLt`)              | "ore"                |
+|                         | `gt` (`EncryptedOreGt`)              | "ore"                |
+| `EncryptedJsonb`        | `contains` (`EncryptedJsonContains`) | "ste_vec"            |
 
 `eqldjango` also provides query expression classes:
 
@@ -80,19 +80,19 @@ The following table shows the relevant classes in `eqldjango`.
 
 | Function or operator class | PostgreSQL function or operator |
 |----------------------------|---------------------------------|
-| CsMatchV1                  | cs_match_v1                     |
-| CsUniqueV1                 | cs_unique_v1                    |
-| CsOre648V1                 | cs_ore_64_8_v1                  |
-| CsSteVecV1                 | cs_ste_vec_v1                   |
-| CsSteVecValueV1            | cs_ste_vec_value_v1             |
-| CsSteVecTermV1             | cs_ste_vec_term_v1              |
-| CsGroupedValueV1           | cs_grouped_value_v1             |
-| CsContains                 | @>                              |
-| CsMatch                    | @>                              |
-| CsContainedBy              | <@                              |
-| CsEquals                   | =                               |
-| CsGt                       | >                               |
-| CsLt                       | <                               |
+| `CsMatchV1`                | `cs_match_v1`                   |
+| `CsUniqueV1`               | `cs_unique_v1`                  |
+| `CsOre648V1`               | `cs_ore_64_8_v1`                |
+| `CsSteVecV1`               | `cs_ste_vec_v1`                 |
+| `CsSteVecValueV1`          | `cs_ste_vec_value_v1`           |
+| `CsSteVecTermV1`           | `cs_ste_vec_term_v1`            |
+| `CsGroupedValueV1`         | `cs_grouped_value_v1`           |
+| `CsContains`               | `@>`                            |
+| `CsMatch`                  | `@>`                            |
+| `CsContainedBy`            | `<@`                            |
+| `CsEquals`                 | `=`                             |
+| `CsGt`                     | `>`                             |
+| `CsLt`                     | `<`                             |
 
 ### SQLAlchemy
 
@@ -104,9 +104,7 @@ session.query(Example)
     .filter(
         cs_match_v1(Example.encrypted_utf8_str).op("@>")(
             cs_match_v1(
-                EqlText("hello", "examples", "encrypted_utf8_str").to_db_format(
-                    "match"
-                )
+                EqlText("ali", "customers", "name").to_db_format("match")
             )
         )
     )
@@ -117,22 +115,22 @@ With those functions, instead of calls to `cs_*` functions directly in SQL, they
 
 The following EQL functions are available in Python for SQLAlchemy.
 
-- cs_unique_v1
-- cs_match_v1
-- cs_ore_64_8_v1
-- cs_ste_vec_v1
-- cs_ste_vec_value_v1
-- cs_ste_vec_term_v1
-- cs_grouped_value_v1
+- `cs_unique_v1`
+- `cs_match_v1`
+- `cs_ore_64_8_v1`
+- `cs_ste_vec_v1`
+- `cs_ste_vec_value_v1`
+- `cs_ste_vec_term_v1`
+- `cs_grouped_value_v1`
 
 The EQL-specific type decorators are:
 
-- EncryptedInt
-- EncryptedBoolean
-- EncryptedDate
-- EncryptedFloat
-- EncryptedUtf8Str
-- EncryptedJsonb
+- `EncryptedInt`
+- `EncryptedBoolean`
+- `EncryptedDate`
+- `EncryptedFloat`
+- `EncryptedUtf8Str`
+- `EncryptedJsonb`
 
 ### psycopg
 
@@ -140,8 +138,8 @@ For psycopg, the query interface involves SQL, with `cs_*` functions, with EQL v
 
 ```python
 cur.execute(
-    "SELECT * FROM examples WHERE cs_match_v1(encrypted_utf8_str) @> cs_match_v1(%s)",
-    (EqlText("hello", "examples", "encrypted_utf8_str").to_db_format("match"),),
+    "SELECT * FROM customers WHERE cs_match_v1(name) @> cs_match_v1(%s)",
+    (EqlText("ali", "customers", "name").to_db_format("match"),),
 )
 ```
 
@@ -149,11 +147,11 @@ This is the more verbose but expressive way of writing EQL queries.
 
 `eqlpy` provides the following classes to represent EQL values:
 
-- EqlInt
-- EqlBool
-- EqlDate
-- EqlFloat
-- EqlText
-- EqlJsonb
+- [EqlInt](VALUE_CLASSES.md#eqlint)
+- [EqlBool](VALUE_CLASSES.md#eqlbool)
+- [EqlDate](VALUE_CLASSES.md#eqldate)
+- [EqlFloat](VALUE_CLASSES.md#eqlfloat)
+- [EqlText](VALUE_CLASSES.md#eqltext)
+- [EqlJsonb](VALUE_CLASSES.md#eqljsonb)
 
 
